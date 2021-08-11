@@ -1,0 +1,18 @@
+[submodule "government-ui"]
+	path = government-ui
+	url = git@github.com:thecardeaproject/government-enterprise-agent-ui.git
+[submodule "government-api"]
+	path = government-api
+	url = git@github.com:thecardeaproject/government-enterprise-agent-controller.git
+[submodule "lab-ui"]
+	path = lab-ui
+	url = git@github.com:thecardeaproject/health-enterprise-agent-ui.git
+[submodule "lab-api"]
+	path = lab-api
+	url = git@github.com:thecardeaproject/health-enterprise-agent-controller.git
+[submodule "aries-acapy-plugin-toolbox"]
+	path = aries-acapy-plugin-toolbox
+	url = https://github.com/Indicio-tech/aries-acapy-plugin-toolbox
+[submodule "wait-for-it"]
+	path = wait-for-it
+	url = https://github.com/vishnubob/wait-for-it.git

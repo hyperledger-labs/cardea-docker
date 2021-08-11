@@ -1,0 +1,256 @@
+version: '3'
+services:
+
+#***************************************************************
+# Lab Services
+#***************************************************************
+
+  # Nginx Service
+  lab-webserver:
+    image: nginx:alpine
+    build:
+      context: nginx
+      dockerfile: Dockerfile-nginx    
+    hostname: lab-webserver
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./lab-ui/build:/var/www/ui:consistent
+      - ./nginx/lab-ssl:/etc/nginx/ssl:consistent
+      - ./lab-api:/var/www/api:consistent
+      - ./nginx/lab-conf.d/:/etc/nginx/conf.d/
+      - ./nginx/docker-entrypoint.d/create-self-signed.sh:/docker-entrypoint.d/10-create-self-signed.sh
+    depends_on:
+      - "lab-api"
+      - "lab-ui"
+    networks:
+      - app-network
+
+ # DB Service
+  lab-db:
+    image: postgres:9.5
+    hostname: lab-db
+    restart: always
+#    ports: # Uncomment to access postgres outside of containers
+#      - "5432:5432"
+    environment:
+      POSTGRES_USER: development
+      POSTGRES_PASSWORD: development
+    networks:
+      - app-network
+
+  lab-api:
+    image: node:10-stretch 
+    hostname: lab-api
+    restart: unless-stopped
+    user: root # we want to run with write permissions for dev, so run as root.
+    working_dir: /home/node/app
+    environment: 
+      - NODE_ENV=development
+      - CONTROLLERPORT=3100
+      - AGENTADDRESS=http://agent-lab:8150
+      - WEB_ROOT=https://localhost
+      - JWT_SECRET=Zu0gPaBdGSP8qwuoK6C1vlBLaXOh6gGq
+      - SESSION_SECRET=Xn2r5u8xjAgD7G3KaPdSgVkYp3s6v9y5
+    volumes:
+      - ./lab-api:/home/node/app:consistent
+      - ./wait-for-it:/home/node/wait-for-it
+    expose:
+      - "3100"
+    command: >
+      sh -c "npm install && /home/node/wait-for-it/wait-for-it.sh lab-db:5432 && npm run migrate_up_all && npm run dev"
+    networks:
+      - app-network
+    depends_on:
+      - "lab-db"
+
+  lab-ui:
+    image: node:10-stretch
+    hostname: lab-ui
+    restart: unless-stopped
+    user: root # To write to ui folder, we need write permissions. node user does not have this.
+    tty: true # keep react from stopping development server
+    working_dir: /home/node/app
+    environment: 
+      - NODE_ENV=development
+      - BROWSER=none  # don't open the web browser
+    volumes:
+      - ./lab-ui:/home/node/app:rw
+    expose:
+      - "3000"
+    command: >
+      sh -c "npm install && npm start"
+    networks:
+      - app-network
+    depends_on:
+      - "lab-db"
+
+  tunnel-lab:
+    image: reflectivedevelopment/agent-tunnel
+    command: "agent-lab:3005 -p 4040 --host ${AGENT_TUNNEL_HOST}"
+    networks:
+      - app-network      
+  agent-lab:
+    build: aries-acapy-plugin-toolbox
+    environment:
+      TUNNEL_HOST: tunnel-lab
+      AGENT_NAME: Lab
+      PORT: 3005
+      ADMIN_PORT: 8150
+      WEBHOOK_ADDRESS: http://lab-api:3100/api/controller-webhook
+    volumes:
+      - ./aries-acapy-plugin-toolbox-startup:/home/indy/aries-acapy-plugin-toolbox-startup:consistent
+    command: >
+      sh -c "./wait.sh /home/indy/aries-acapy-plugin-toolbox-startup/startup.sh"
+    ports:
+     - "3005:3005"
+     - "8150:8150"
+    networks:
+      - app-network
+
+
+#***************************************************************
+# Government Services
+#***************************************************************
+
+  # Nginx Service
+  government-webserver:
+    image: nginx:alpine
+    build:
+      context: nginx
+      dockerfile: Dockerfile-nginx    
+    hostname: government-webserver
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "8000:80"
+      - "4443:443"
+    volumes:
+      - ./government-ui/build:/var/www/ui:consistent
+      - ./nginx/government-ssl:/etc/nginx/ssl:consistent
+      - ./government-api:/var/www/api:consistent
+      - ./nginx/government-conf.d/:/etc/nginx/conf.d/
+      - ./nginx/docker-entrypoint.d/create-self-signed.sh:/docker-entrypoint.d/10-create-self-signed.sh
+    depends_on:
+      - "government-api"
+      - "government-ui"
+    networks:
+      - app-network
+
+ # DB Service
+  government-db:
+    image: postgres:9.5
+    hostname: government-db
+    restart: always
+#    ports: # Uncomment to access postgres outside of containers
+#      - "5432:5432"
+    environment:
+      POSTGRES_USER: government
+      POSTGRES_PASSWORD: government
+    networks:
+      - app-network
+
+  government-api:
+    image: node:10-stretch 
+    hostname: government-api
+    restart: unless-stopped
+    user: root # we want to run with write permissions for dev, so run as root.
+    working_dir: /home/node/app
+    environment: 
+      - NODE_ENV=development
+      - CONTROLLERPORT=3100
+      - AGENTADDRESS=http://agent-government:8151
+      - WEB_ROOT=https://localhost:8000
+      - JWT_SECRET=Zu0gPaBdGkP8qwuoK6C1vlBLaXOh6gGq
+      - SESSION_SECRET=Xn2r558xjAgD7G3KaPdSgVkYp3s6v9y5
+    volumes:
+      - ./government-api:/home/node/app:consistent
+      - ./wait-for-it:/home/node/wait-for-it
+    expose:
+      - "3100"
+    command: >
+      sh -c "npm install && /home/node/wait-for-it/wait-for-it.sh government-db:5432 && npm run migrate_up_all && npm run dev"
+    networks:
+      - app-network
+    depends_on:
+      - "government-db"
+
+  government-ui:
+    image: node:10-stretch
+    hostname: government-ui
+    restart: unless-stopped
+    user: root # To write to ui folder, we need write permissions. node user does not have this.
+    tty: true # keep react from stopping development server
+    working_dir: /home/node/app
+    environment: 
+      - NODE_ENV=development
+      - BROWSER=none  # don't open the web browser
+    volumes:
+      - ./government-ui:/home/node/app:rw
+    expose:
+      - "3000"
+    command: >
+      sh -c "npm install && npm start"
+    networks:
+      - app-network
+    depends_on:
+      - "government-db"
+
+  tunnel-government:
+    image: reflectivedevelopment/agent-tunnel
+    command: "agent-government:3006 -p 4040 --host ${AGENT_TUNNEL_HOST}"
+    networks:
+      - app-network 
+  agent-government:
+    build: aries-acapy-plugin-toolbox
+    environment:
+      TUNNEL_HOST: tunnel-government
+      AGENT_NAME: Government
+      PORT: 3006
+      ADMIN_PORT: 8151
+      WEBHOOK_ADDRESS: http://government-api:3100/api/controller-webhook
+    volumes:
+      - ./aries-acapy-plugin-toolbox-startup:/home/indy/aries-acapy-plugin-toolbox-startup:consistent
+    command: >
+      sh -c "./wait.sh /home/indy/aries-acapy-plugin-toolbox-startup/startup.sh"
+    ports:
+     - "3006:3006"
+     - "8151:8151"
+    networks:
+      - app-network
+
+#***************************************************************
+# Dev Services
+#***************************************************************
+
+  tunnel-test:
+    image: reflectivedevelopment/agent-tunnel
+    command: "agent-test:3009 -p 4040 --host ${AGENT_TUNNEL_HOST}"
+    networks:
+      - app-network
+  agent-test:
+    build: aries-acapy-plugin-toolbox
+    environment:
+      TUNNEL_HOST: tunnel-test
+      AGENT_NAME: Test
+      PORT: 3009
+      ADMIN_PORT: 8154
+    volumes:
+      - ./aries-acapy-plugin-toolbox-startup:/home/indy/aries-acapy-plugin-toolbox-startup:consistent
+    command: >
+      sh -c "./wait.sh /home/indy/aries-acapy-plugin-toolbox-startup/startup.sh"
+    ports:
+     - "3009:3009"
+     - "8154:8154"
+    networks:
+      - app-network
+
+
+#Docker Networks
+networks:
+  app-network:
+    driver: bridge
+
