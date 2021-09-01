@@ -1,15 +1,15 @@
 [submodule "government-ui"]
 	path = government-ui
-	url = git@github.com:thecardeaproject/government-enterprise-agent-ui.git
+	url = git@github.com:thecardeaproject/cardea-enterprise-government-ui.git
 [submodule "government-api"]
 	path = government-api
-	url = git@github.com:thecardeaproject/government-enterprise-agent-controller.git
+	url = git@github.com:thecardeaproject/cardea-enterprise-government-controller.git
 [submodule "lab-ui"]
 	path = lab-ui
-	url = git@github.com:thecardeaproject/health-enterprise-agent-ui.git
+	url = git@github.com:thecardeaproject/cardea-enterprise-health-ui.git
 [submodule "lab-api"]
 	path = lab-api
-	url = git@github.com:thecardeaproject/health-enterprise-agent-controller.git
+	url = git@github.com:thecardeaproject/cardea-enterprise-health-controller.git
 [submodule "aries-acapy-plugin-toolbox"]
 	path = aries-acapy-plugin-toolbox
 	url = https://github.com/Indicio-tech/aries-acapy-plugin-toolbox
@@ -18,7 +18,7 @@
 	url = https://github.com/vishnubob/wait-for-it.git
 [submodule "verifier-api"]
 	path = verifier-api
-	url = git@github.com:thecardeaproject/cardea-verifier-enterprise-controller.git
+	url = git@github.com:thecardeaproject/cardea-enterprise-verifier-controller.git
 [submodule "verifier-ui"]
 	path = verifier-ui
-	url = git@github.com:thecardeaproject/cardea-verifier-enterprise-ui.git
+	url = git@github.com:thecardeaproject/cardea-enterprise-verifier-ui.git
