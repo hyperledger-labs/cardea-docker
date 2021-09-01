@@ -16,3 +16,9 @@
 [submodule "wait-for-it"]
 	path = wait-for-it
 	url = https://github.com/vishnubob/wait-for-it.git
+[submodule "verifier-api"]
+	path = verifier-api
+	url = git@github.com:thecardeaproject/cardea-verifier-enterprise-controller.git
+[submodule "verifier-ui"]
+	path = verifier-ui
+	url = git@github.com:thecardeaproject/cardea-verifier-enterprise-ui.git

@@ -223,6 +223,118 @@ services:
       - app-network
 
 #***************************************************************
+# Verifier Services
+#***************************************************************
+
+  # Nginx Service
+  verifier-webserver:
+    image: nginx:alpine
+    build:
+      context: nginx
+      dockerfile: Dockerfile-nginx    
+    hostname: verifier-webserver
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "8080:80"
+      - "4444:443"
+    volumes:
+      - ./verifier-ui/build:/var/www/ui:consistent
+      - ./nginx/verifier-ssl:/etc/nginx/ssl:consistent
+      - ./verifier-api:/var/www/api:consistent
+      - ./nginx/verifier-conf.d/:/etc/nginx/conf.d/
+      - ./nginx/docker-entrypoint.d/create-self-signed.sh:/docker-entrypoint.d/10-create-self-signed.sh
+    depends_on:
+      - "verifier-api"
+      - "verifier-ui"
+    networks:
+      - app-network
+
+ # DB Service
+  verifier-db:
+    image: postgres:9.5
+    hostname: verifier-db
+    restart: always
+#    ports: # Uncomment to access postgres outside of containers
+#      - "5432:5432"
+    environment:
+      POSTGRES_USER: verifier
+      POSTGRES_PASSWORD: verifier
+    networks:
+      - app-network
+
+  verifier-api:
+    image: node:10-stretch 
+    hostname: verifier-api
+    restart: unless-stopped
+    user: root # we want to run with write permissions for dev, so run as root.
+    working_dir: /home/node/app
+    environment: 
+      - NODE_ENV=development
+      - CONTROLLERPORT=3100
+      - AGENTADDRESS=http://agent-verifier:8152
+      - WEB_ROOT=https://localhost:8000
+      - JWT_SECRET=Zu0gPaBdGkP8qwuoK6C1vlBLaXOh6gGq
+      - SESSION_SECRET=Xn2r558xjAgD7G3KaPdSgVkYp3s6v9y5
+      - SCHEMA_TRUSTED_TRAVELER=RuuJwd3JMffNwZ43DcJKN1:2:Trusted_Traveler:1.4 
+    volumes:
+      - ./verifier-api:/home/node/app:consistent
+      - ./wait-for-it:/home/node/wait-for-it
+    expose:
+      - "3100"
+    command: >
+      sh -c "npm install && /home/node/wait-for-it/wait-for-it.sh verifier-db:5432 && npm run migrate_up_all && npm run dev"
+    networks:
+      - app-network
+    depends_on:
+      - "verifier-db"
+
+  verifier-ui:
+    image: node:10-stretch
+    hostname: verifier-ui
+    restart: unless-stopped
+    user: root # To write to ui folder, we need write permissions. node user does not have this.
+    tty: true # keep react from stopping development server
+    working_dir: /home/node/app
+    environment: 
+      - NODE_ENV=development
+      - BROWSER=none  # don't open the web browser
+    volumes:
+      - ./verifier-ui:/home/node/app:rw
+    expose:
+      - "3000"
+    command: >
+      sh -c "npm install && npm start"
+    networks:
+      - app-network
+    depends_on:
+      - "verifier-db"
+
+  tunnel-verifier:
+    image: reflectivedevelopment/agent-tunnel
+    command: "agent-verifier:3007 -p 4040 --host ${AGENT_TUNNEL_HOST}"
+    networks:
+      - app-network
+  agent-verifier:
+    build: aries-acapy-plugin-toolbox
+    environment:
+      TUNNEL_HOST: tunnel-verifier
+      AGENT_NAME: Verifier
+      PORT: 3007
+      ADMIN_PORT: 8152
+      WEBHOOK_ADDRESS: http://verifier-api:3100/api/controller-webhook
+    volumes:
+      - ./aries-acapy-plugin-toolbox-startup:/home/indy/aries-acapy-plugin-toolbox-startup:consistent
+    command: >
+      sh -c "./wait.sh /home/indy/aries-acapy-plugin-toolbox-startup/startup.sh"
+    ports:
+     - "3007:3007"
+     - "8152:8152"
+    networks:
+      - app-network
+
+
+#***************************************************************
 # Dev Services
 #***************************************************************
 
