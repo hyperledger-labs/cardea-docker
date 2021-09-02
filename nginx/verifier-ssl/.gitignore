@@ -1,1 +1,4 @@
-my-site.com.*
+# Ignore everything in this directory
+*
+# Except this file
+!.gitignore
