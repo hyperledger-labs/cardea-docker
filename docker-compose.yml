@@ -104,6 +104,7 @@ services:
     environment:
       TUNNEL_ENDPOINT: http://tunnel-lab:4040
       ACAPY_WEBHOOK_URL: http://lab-api:3100/api/controller-webhook
+      # ACAPY_ENDPOINT: ${LAB_ENDPOINT}
     volumes:
       - ./acapy-endpoint.sh:/acapy-endpoint.sh
     entrypoint: >
@@ -113,7 +114,7 @@ services:
         -ot http
         --admin 0.0.0.0 8150 --admin-insecure-mode
         --label Lab
-        --genesis-url https://raw.githubusercontent.com/Indicio-tech/indicio-network/master/genesis_files/pool_transactions_testnet_genesis
+        --genesis-url ${GENESIS_URL}
         --plugin acapy_plugin_data_transfer
         --enable-undelivered-queue
         --wallet-type indy
@@ -132,6 +133,7 @@ services:
         --debug-connections
         --debug-credentials
         --debug-presentations
+        --invite --invite-label "LAB (admin)"
     ports:
      - "3005:3005"
      - "8150:8150"
@@ -243,6 +245,7 @@ services:
     environment:
       TUNNEL_ENDPOINT: http://tunnel-government:4040
       ACAPY_WEBHOOK_URL: http://government-api:3100/api/controller-webhook
+      # ACAPY_ENDPOINT: ${GOVERNMENT_ENDPOINT}
     volumes:
       - ./acapy-endpoint.sh:/acapy-endpoint.sh
     entrypoint: >
@@ -252,7 +255,7 @@ services:
         -ot http
         --admin 0.0.0.0 8151 --admin-insecure-mode
         --label Government
-        --genesis-url https://raw.githubusercontent.com/Indicio-tech/indicio-network/master/genesis_files/pool_transactions_testnet_genesis
+        --genesis-url ${GENESIS_URL}
         --plugin acapy_plugin_data_transfer
         --enable-undelivered-queue
         --wallet-type indy
@@ -271,6 +274,7 @@ services:
         --debug-connections
         --debug-credentials
         --debug-presentations
+        --invite --invite-label "GOVERNMENT (admin)"
     ports:
      - "3006:3006"
      - "8151:8151"
@@ -378,6 +382,7 @@ services:
     environment:
       TUNNEL_ENDPOINT: http://tunnel-verifier:4040
       ACAPY_WEBHOOK_URL: http://verifier-api:3100/api/controller-webhook
+      # ACAPY_ENDPOINT: ${VERIFIER_ENDPOINT}
     volumes:
       - ./acapy-endpoint.sh:/acapy-endpoint.sh
     entrypoint: >
@@ -387,7 +392,7 @@ services:
         -ot http
         --admin 0.0.0.0 8152 --admin-insecure-mode
         --label Verifier
-        --genesis-url https://raw.githubusercontent.com/Indicio-tech/indicio-network/master/genesis_files/pool_transactions_testnet_genesis
+        --genesis-url ${GENESIS_URL}
         --plugin acapy_plugin_data_transfer
         --enable-undelivered-queue
         --wallet-type indy
@@ -406,6 +411,7 @@ services:
         --debug-connections
         --debug-credentials
         --debug-presentations
+        --invite --invite-label "VERIFIER (admin)"
     ports:
      - "3007:3007"
      - "8152:8152"
@@ -431,6 +437,7 @@ services:
       - ./acapy-endpoint.sh:/acapy-endpoint.sh
     ports:
       - 3010:3010
+      - 8154:8154
     networks:
       - app-network
     entrypoint: >
@@ -438,13 +445,22 @@ services:
     command: >
       start --arg-file default.yml
       -it acapy_plugin_toolbox.http_ws 0.0.0.0 3010
+      --admin 0.0.0.0 8154 --admin-insecure-mode
       --label "Test Agent"
       --wallet-type indy
       --wallet-name test
       --wallet-key test
       --auto-provision
-      --genesis-url https://raw.githubusercontent.com/Indicio-tech/indicio-network/master/genesis_files/pool_transactions_testnet_genesis
-
+      --auto-accept-requests
+      --auto-ping-connection
+      --auto-respond-credential-proposal
+      --auto-respond-credential-offer
+      --auto-respond-credential-request
+      --auto-store-credential
+      --auto-respond-presentation-proposal
+      --auto-respond-presentation-request
+      --auto-verify-presentation
+      --genesis-url ${GENESIS_URL}
 
 #Docker Networks
 networks:
