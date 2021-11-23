@@ -461,7 +461,6 @@ services:
       --auto-respond-presentation-request
       --auto-verify-presentation
       --genesis-url ${GENESIS_URL}
-
 #Docker Networks
 networks:
   app-network:
