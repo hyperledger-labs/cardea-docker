@@ -114,7 +114,7 @@ services:
         -ot http
         --admin 0.0.0.0 8150 --admin-insecure-mode
         --label Lab
-        --genesis-url ${GENESIS_URL}
+        --genesis-url https://raw.githubusercontent.com/Indicio-tech/indicio-network/master/genesis_files/pool_transactions_testnet_genesis
         --plugin acapy_plugin_data_transfer
         --enable-undelivered-queue
         --wallet-type indy
@@ -255,7 +255,7 @@ services:
         -ot http
         --admin 0.0.0.0 8151 --admin-insecure-mode
         --label Government
-        --genesis-url ${GENESIS_URL}
+        --genesis-url https://raw.githubusercontent.com/Indicio-tech/indicio-network/master/genesis_files/pool_transactions_testnet_genesis
         --plugin acapy_plugin_data_transfer
         --enable-undelivered-queue
         --wallet-type indy
@@ -392,7 +392,7 @@ services:
         -ot http
         --admin 0.0.0.0 8152 --admin-insecure-mode
         --label Verifier
-        --genesis-url ${GENESIS_URL}
+        --genesis-url https://raw.githubusercontent.com/Indicio-tech/indicio-network/master/genesis_files/pool_transactions_testnet_genesis
         --plugin acapy_plugin_data_transfer
         --enable-undelivered-queue
         --wallet-type indy
@@ -460,7 +460,7 @@ services:
       --auto-respond-presentation-proposal
       --auto-respond-presentation-request
       --auto-verify-presentation
-      --genesis-url ${GENESIS_URL}
+      --genesis-url https://raw.githubusercontent.com/Indicio-tech/indicio-network/master/genesis_files/pool_transactions_testnet_genesis
 
 #Docker Networks
 networks:
