@@ -93,22 +93,47 @@ services:
       - "lab-db"
 
   tunnel-lab:
-    image: reflectivedevelopment/agent-tunnel
-    command: "agent-lab:3005 -p 4040 --host ${AGENT_TUNNEL_HOST}"
+    image: dbluhm/agent-tunnel
+    command: -s agent-lab:3005 -p 4040 --host ${AGENT_TUNNEL_HOST}
     networks:
-      - app-network      
+      - app-network
+
   agent-lab:
-    build: aries-acapy-plugin-toolbox
+    build:
+      context: .
     environment:
-      TUNNEL_HOST: tunnel-lab
-      AGENT_NAME: Lab
-      PORT: 3005
-      ADMIN_PORT: 8150
-      WEBHOOK_ADDRESS: http://lab-api:3100/api/controller-webhook
+      TUNNEL_ENDPOINT: http://tunnel-lab:4040
+      ACAPY_WEBHOOK_URL: http://lab-api:3100/api/controller-webhook
+      # ACAPY_ENDPOINT: ${LAB_ENDPOINT}
     volumes:
-      - ./aries-acapy-plugin-toolbox-startup:/home/indy/aries-acapy-plugin-toolbox-startup:consistent
+      - ./acapy-endpoint.sh:/acapy-endpoint.sh
+    entrypoint: >
+      sh -c '/acapy-endpoint.sh aca-py "$$@"' --
     command: >
-      sh -c "./wait.sh /home/indy/aries-acapy-plugin-toolbox-startup/startup.sh"
+        start -it http 0.0.0.0 3005
+        -ot http
+        --admin 0.0.0.0 8150 --admin-insecure-mode
+        --label Lab
+        --genesis-url https://raw.githubusercontent.com/Indicio-tech/indicio-network/master/genesis_files/pool_transactions_testnet_genesis
+        --plugin acapy_plugin_data_transfer
+        --enable-undelivered-queue
+        --wallet-type indy
+        --wallet-name default
+        --wallet-key default
+        --auto-provision
+        --auto-accept-requests
+        --auto-ping-connection
+        --auto-respond-credential-proposal
+        --auto-respond-credential-offer
+        --auto-respond-credential-request
+        --auto-store-credential
+        --auto-respond-presentation-proposal
+        --auto-respond-presentation-request
+        --auto-verify-presentation
+        --debug-connections
+        --debug-credentials
+        --debug-presentations
+        --invite --invite-label "LAB (admin)"
     ports:
      - "3005:3005"
      - "8150:8150"
@@ -209,22 +234,47 @@ services:
       - "government-db"
 
   tunnel-government:
-    image: reflectivedevelopment/agent-tunnel
-    command: "agent-government:3006 -p 4040 --host ${AGENT_TUNNEL_HOST}"
+    image: dbluhm/agent-tunnel
+    command: -s agent-government:3006 -p 4040 --host ${AGENT_TUNNEL_HOST}
     networks:
       - app-network 
+
   agent-government:
-    build: aries-acapy-plugin-toolbox
+    build:
+      context: .
     environment:
-      TUNNEL_HOST: tunnel-government
-      AGENT_NAME: Government
-      PORT: 3006
-      ADMIN_PORT: 8151
-      WEBHOOK_ADDRESS: http://government-api:3100/api/controller-webhook
+      TUNNEL_ENDPOINT: http://tunnel-government:4040
+      ACAPY_WEBHOOK_URL: http://government-api:3100/api/controller-webhook
+      # ACAPY_ENDPOINT: ${GOVERNMENT_ENDPOINT}
     volumes:
-      - ./aries-acapy-plugin-toolbox-startup:/home/indy/aries-acapy-plugin-toolbox-startup:consistent
+      - ./acapy-endpoint.sh:/acapy-endpoint.sh
+    entrypoint: >
+      sh -c '/acapy-endpoint.sh aca-py "$$@"' --
     command: >
-      sh -c "./wait.sh /home/indy/aries-acapy-plugin-toolbox-startup/startup.sh"
+        start -it http 0.0.0.0 3006
+        -ot http
+        --admin 0.0.0.0 8151 --admin-insecure-mode
+        --label Government
+        --genesis-url https://raw.githubusercontent.com/Indicio-tech/indicio-network/master/genesis_files/pool_transactions_testnet_genesis
+        --plugin acapy_plugin_data_transfer
+        --enable-undelivered-queue
+        --wallet-type indy
+        --wallet-name default
+        --wallet-key default
+        --auto-provision
+        --auto-accept-requests
+        --auto-ping-connection
+        --auto-respond-credential-proposal
+        --auto-respond-credential-offer
+        --auto-respond-credential-request
+        --auto-store-credential
+        --auto-respond-presentation-proposal
+        --auto-respond-presentation-request
+        --auto-verify-presentation
+        --debug-connections
+        --debug-credentials
+        --debug-presentations
+        --invite --invite-label "GOVERNMENT (admin)"
     ports:
      - "3006:3006"
      - "8151:8151"
@@ -321,22 +371,47 @@ services:
       - "verifier-db"
 
   tunnel-verifier:
-    image: reflectivedevelopment/agent-tunnel
-    command: "agent-verifier:3007 -p 4040 --host ${AGENT_TUNNEL_HOST}"
+    image: dbluhm/agent-tunnel
+    command: -s agent-verifier:3007 -p 4040 --host ${AGENT_TUNNEL_HOST}
     networks:
-      - app-network
+      - app-network 
+
   agent-verifier:
-    build: aries-acapy-plugin-toolbox
+    build:
+      context: .
     environment:
-      TUNNEL_HOST: tunnel-verifier
-      AGENT_NAME: Verifier
-      PORT: 3007
-      ADMIN_PORT: 8152
-      WEBHOOK_ADDRESS: http://verifier-api:3100/api/controller-webhook
+      TUNNEL_ENDPOINT: http://tunnel-verifier:4040
+      ACAPY_WEBHOOK_URL: http://verifier-api:3100/api/controller-webhook
+      # ACAPY_ENDPOINT: ${VERIFIER_ENDPOINT}
     volumes:
-      - ./aries-acapy-plugin-toolbox-startup:/home/indy/aries-acapy-plugin-toolbox-startup:consistent
+      - ./acapy-endpoint.sh:/acapy-endpoint.sh
+    entrypoint: >
+      sh -c '/acapy-endpoint.sh aca-py "$$@"' --
     command: >
-      sh -c "./wait.sh /home/indy/aries-acapy-plugin-toolbox-startup/startup.sh"
+        start -it http 0.0.0.0 3007
+        -ot http
+        --admin 0.0.0.0 8152 --admin-insecure-mode
+        --label Verifier
+        --genesis-url https://raw.githubusercontent.com/Indicio-tech/indicio-network/master/genesis_files/pool_transactions_testnet_genesis
+        --plugin acapy_plugin_data_transfer
+        --enable-undelivered-queue
+        --wallet-type indy
+        --wallet-name default
+        --wallet-key default
+        --auto-provision
+        --auto-accept-requests
+        --auto-ping-connection
+        --auto-respond-credential-proposal
+        --auto-respond-credential-offer
+        --auto-respond-credential-request
+        --auto-store-credential
+        --auto-respond-presentation-proposal
+        --auto-respond-presentation-request
+        --auto-verify-presentation
+        --debug-connections
+        --debug-credentials
+        --debug-presentations
+        --invite --invite-label "VERIFIER (admin)"
     ports:
      - "3007:3007"
      - "8152:8152"
@@ -349,27 +424,43 @@ services:
 #***************************************************************
 
   tunnel-test:
-    image: reflectivedevelopment/agent-tunnel
-    command: "agent-test:3009 -p 4040 --host ${AGENT_TUNNEL_HOST}"
-    networks:
-      - app-network
-  agent-test:
-    build: aries-acapy-plugin-toolbox
-    environment:
-      TUNNEL_HOST: tunnel-test
-      AGENT_NAME: Test
-      PORT: 3009
-      ADMIN_PORT: 8154
-    volumes:
-      - ./aries-acapy-plugin-toolbox-startup:/home/indy/aries-acapy-plugin-toolbox-startup:consistent
-    command: >
-      sh -c "./wait.sh /home/indy/aries-acapy-plugin-toolbox-startup/startup.sh"
-    ports:
-     - "3009:3009"
-     - "8154:8154"
+    image: dbluhm/agent-tunnel
+    command: -s agent-test:3010 -p 4040 --host ${AGENT_TUNNEL_HOST}
     networks:
       - app-network
 
+  agent-test:
+    image: dbluhm/acapy-toolbox:939bbe6
+    environment:
+      TUNNEL_ENDPOINT: http://tunnel-test:4040
+    volumes:
+      - ./acapy-endpoint.sh:/acapy-endpoint.sh
+    ports:
+      - 3010:3010
+      - 8154:8154
+    networks:
+      - app-network
+    entrypoint: >
+      sh -c '/acapy-endpoint.sh aca-py "$$@"' --
+    command: >
+      start --arg-file default.yml
+      -it acapy_plugin_toolbox.http_ws 0.0.0.0 3010
+      --admin 0.0.0.0 8154 --admin-insecure-mode
+      --label "Test Agent"
+      --wallet-type indy
+      --wallet-name test
+      --wallet-key test
+      --auto-provision
+      --auto-accept-requests
+      --auto-ping-connection
+      --auto-respond-credential-proposal
+      --auto-respond-credential-offer
+      --auto-respond-credential-request
+      --auto-store-credential
+      --auto-respond-presentation-proposal
+      --auto-respond-presentation-request
+      --auto-verify-presentation
+      --genesis-url https://raw.githubusercontent.com/Indicio-tech/indicio-network/master/genesis_files/pool_transactions_testnet_genesis
 
 #Docker Networks
 networks:
