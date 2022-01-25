@@ -59,7 +59,6 @@ services:
       - SCHEMA_LAB_ORDER=RuuJwd3JMffNwZ43DcJKN1:2:Lab_Order:1.4
       - SCHEMA_LAB_RESULT=RuuJwd3JMffNwZ43DcJKN1:2:Lab_Result:1.4
       - SCHEMA_VACCINATION=RuuJwd3JMffNwZ43DcJKN1:2:Vaccination:1.4
-      - SCHEMA_MEDICAL_RELEASE=RuuJwd3JMffNwZ43DcJKN1:2:Medical_Release:1.1
       - SCHEMA_VACCINE_EXEMPTION=RuuJwd3JMffNwZ43DcJKN1:2:Vaccine_Exemption:1.4
     volumes:
       - ./lab-api:/home/node/app:consistent
@@ -202,7 +201,6 @@ services:
       - SCHEMA_LAB_RESULT=RuuJwd3JMffNwZ43DcJKN1:2:Lab_Result:1.4
       - SCHEMA_VACCINATION=RuuJwd3JMffNwZ43DcJKN1:2:Vaccination:1.4
       - SCHEMA_VACCINE_EXEMPTION=RuuJwd3JMffNwZ43DcJKN1:2:Vaccine_Exemption:1.4
-      - SCHEMA_MEDICAL_RELEASE=RuuJwd3JMffNwZ43DcJKN1:2:Medical_Release:1.1
       - SCHEMA_TRUSTED_TRAVELER=RuuJwd3JMffNwZ43DcJKN1:2:Trusted_Traveler:1.4 
     volumes:
       - ./government-api:/home/node/app:consistent
