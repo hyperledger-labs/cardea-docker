@@ -55,6 +55,7 @@ services:
       - WEB_ROOT=https://localhost
       - JWT_SECRET=Zu0gPaBdGSP8qwuoK6C1vlBLaXOh6gGq
       - SESSION_SECRET=Xn2r5u8xjAgD7G3KaPdSgVkYp3s6v9y5
+      - GOVERNANCE_DISABLE_SSL_CHECK=false
       - SCHEMA_LAB_ORDER=RuuJwd3JMffNwZ43DcJKN1:2:Lab_Order:1.4
       - SCHEMA_LAB_RESULT=RuuJwd3JMffNwZ43DcJKN1:2:Lab_Result:1.4
       - SCHEMA_VACCINATION=RuuJwd3JMffNwZ43DcJKN1:2:Vaccination:1.4
@@ -195,6 +196,7 @@ services:
       - WEB_ROOT=https://localhost:8000
       - JWT_SECRET=Zu0gPaBdGkP8qwuoK6C1vlBLaXOh6gGq
       - SESSION_SECRET=Xn2r558xjAgD7G3KaPdSgVkYp3s6v9y5
+      - GOVERNANCE_DISABLE_SSL_CHECK=false
       - SCHEMA_LAB_ORDER=RuuJwd3JMffNwZ43DcJKN1:2:Lab_Order:1.4
       - SCHEMA_LAB_RESULT=RuuJwd3JMffNwZ43DcJKN1:2:Lab_Result:1.4
       - SCHEMA_VACCINATION=RuuJwd3JMffNwZ43DcJKN1:2:Vaccination:1.4
@@ -335,6 +337,7 @@ services:
       - AGENTADDRESS=http://agent-verifier:8152
       - WEB_ROOT=https://localhost:8000
       - JWT_SECRET=Zu0gPaBdGkP8qwuoK6C1vlBLaXOh6gGq
+      - GOVERNANCE_DISABLE_SSL_CHECK=false
       - SESSION_SECRET=Xn2r558xjAgD7G3KaPdSgVkYp3s6v9y5
       - SCHEMA_TRUSTED_TRAVELER=RuuJwd3JMffNwZ43DcJKN1:2:Trusted_Traveler:1.4 
     volumes:
