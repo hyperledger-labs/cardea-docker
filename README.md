@@ -53,3 +53,7 @@ In the previous case we entered the db container and ran the command sh. Tab com
 
     $ docker-compose exec 
     api        db         ui         webserver
+
+Follow this link to clone and install Aries Toolbox for using test agent.
+
+    https://github.com/hyperledger/aries-toolbox/tree/23ecf6fed62eefd7b29dc1f4fbc60cd3c0bac2d5
