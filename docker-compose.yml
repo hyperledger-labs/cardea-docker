@@ -102,7 +102,7 @@ services:
     expose:
       - "3100"
     command: >
-      sh -c "npm install && /home/node/wait-for-it/wait-for-it.sh -t 120 ${LAB_API_DB_HOST}:5432 && npm run migrate_up_all && npm run dev"
+      sh -c "npm install && /home/node/wait-for-it/wait-for-it.sh -t 300 ${LAB_API_DB_HOST}:5432 && npm run migrate_up_all && npm run dev"
     networks:
       - app-network
     depends_on:
@@ -136,7 +136,7 @@ services:
       ACAPY_WEBHOOK_URL: http://lab-api:3100/api/controller-webhook
       ACAPY_ENDPOINT: http://lab-agent:3005
     entrypoint: >
-      sh -c '/home/indy/wait-for-it/wait-for-it.sh -t 120 ${LAB_AGENT_DB_HOST}:5432 && aca-py "$$@"' --
+      sh -c '/home/indy/wait-for-it/wait-for-it.sh -t 300 ${LAB_AGENT_DB_HOST}:5432 && aca-py "$$@"' --
     volumes:
       - ./wait-for-it:/home/indy/wait-for-it
     command: >
@@ -196,7 +196,7 @@ services:
     environment:
       - WAIT_BEFORE_HOSTS=3
       - WAIT_HOSTS=lab-proxy:3000,lab-agent:3005
-      - WAIT_HOSTS_TIMEOUT=120
+      - WAIT_HOSTS_TIMEOUT=300
       - WAIT_SLEEP_INTERVAL=1
       - WAIT_HOST_CONNECT_TIMEOUT=10
       - PROXY=http://lab-proxy:3000
@@ -246,7 +246,7 @@ services:
     expose:
       - "3100"
     command: >
-      sh -c "npm install && /home/node/wait-for-it/wait-for-it.sh -t 120 ${GOVERNMENT_API_DB_HOST}:5432 && npm run migrate_up_all && npm run dev"
+      sh -c "npm install && /home/node/wait-for-it/wait-for-it.sh -t 300 ${GOVERNMENT_API_DB_HOST}:5432 && npm run migrate_up_all && npm run dev"
     networks:
       - app-network
     depends_on:
@@ -280,7 +280,7 @@ services:
       ACAPY_WEBHOOK_URL: http://government-api:3100/api/controller-webhook
       ACAPY_ENDPOINT: http://government-agent:3006
     entrypoint: >
-      sh -c '/home/indy/wait-for-it/wait-for-it.sh -t 120 ${GOVERNMENT_AGENT_DB_HOST}:5432 && aca-py "$$@"' --
+      sh -c '/home/indy/wait-for-it/wait-for-it.sh -t 300 ${GOVERNMENT_AGENT_DB_HOST}:5432 && aca-py "$$@"' --
     volumes:
       - ./wait-for-it:/home/indy/wait-for-it
     command: >
@@ -336,7 +336,7 @@ services:
     environment:
       - WAIT_BEFORE_HOSTS=3
       - WAIT_HOSTS=government-proxy:3000,government-agent:3006
-      - WAIT_HOSTS_TIMEOUT=120
+      - WAIT_HOSTS_TIMEOUT=300
       - WAIT_SLEEP_INTERVAL=1
       - WAIT_HOST_CONNECT_TIMEOUT=10
       - PROXY=http://government-proxy:3000
@@ -376,7 +376,7 @@ services:
     expose:
       - "3100"
     command: >
-      sh -c "npm install && /home/node/wait-for-it/wait-for-it.sh -t 120 ${VERIFIER_API_DB_HOST}:5432 && npm run migrate_up_all && npm run dev"
+      sh -c "npm install && /home/node/wait-for-it/wait-for-it.sh -t 300 ${VERIFIER_API_DB_HOST}:5432 && npm run migrate_up_all && npm run dev"
     networks:
       - app-network
     depends_on:
@@ -410,7 +410,7 @@ services:
       ACAPY_WEBHOOK_URL: http://verifier-api:3100/api/controller-webhook
       ACAPY_ENDPOINT: http://verifier-agent:3009
     entrypoint: >
-      sh -c '/home/indy/wait-for-it/wait-for-it.sh -t 120 ${VERIFIER_AGENT_DB_HOST}:5432 && aca-py "$$@"' --
+      sh -c '/home/indy/wait-for-it/wait-for-it.sh -t 300 ${VERIFIER_AGENT_DB_HOST}:5432 && aca-py "$$@"' --
     volumes:
       - ./wait-for-it:/home/indy/wait-for-it
     command: >
@@ -464,7 +464,7 @@ services:
     environment:
       - WAIT_BEFORE_HOSTS=3
       - WAIT_HOSTS=verifier-proxy:3000,verifier-agent:3009
-      - WAIT_HOSTS_TIMEOUT=120
+      - WAIT_HOSTS_TIMEOUT=300
       - WAIT_SLEEP_INTERVAL=1
       - WAIT_HOST_CONNECT_TIMEOUT=10
       - PROXY=http://verifier-proxy:3000
@@ -531,7 +531,7 @@ services:
     environment:
       - WAIT_BEFORE_HOSTS=3
       - WAIT_HOSTS=test-proxy:3000,test-agent:3010
-      - WAIT_HOSTS_TIMEOUT=120
+      - WAIT_HOSTS_TIMEOUT=300
       - WAIT_SLEEP_INTERVAL=1
       - WAIT_HOST_CONNECT_TIMEOUT=10
       - PROXY=http://test-proxy:3000
