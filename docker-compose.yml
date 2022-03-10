@@ -1,85 +1,123 @@
 version: '3'
 services:
 
-#***************************************************************
-# Lab Services
-#***************************************************************
-
   # Nginx Service
-  lab-webserver:
+  webserver:
     image: nginx:alpine
     build:
       context: nginx
       dockerfile: Dockerfile-nginx    
-    hostname: lab-webserver
+    hostname: webserver
+    environment:
+      DEV_COMMENT: '#' # Disable prod settings
+      PROD_COMMENT: '' # Enable dev settings
+      LAB_SSL_DOMAIN_PATH: ${LAB_SSL_DOMAIN_PATH}
+      LAB_SERVER_NAME: ${LAB_SERVER_NAME}
+      LAB_HTTPS_PORT: ${LAB_HTTPS_PORT}
+      LAB_HTTP_PORT: ${LAB_HTTP_PORT}
+      GOVERNMENT_SSL_DOMAIN_PATH: ${GOVERNMENT_SSL_DOMAIN_PATH}
+      GOVERNMENT_SERVER_NAME: ${GOVERNMENT_SERVER_NAME}
+      GOVERNMENT_HTTPS_PORT: ${GOVERNMENT_HTTPS_PORT}
+      GOVERNMENT_HTTP_PORT: ${GOVERNMENT_HTTP_PORT}
+      VERIFIER_SSL_DOMAIN_PATH: ${VERIFIER_SSL_DOMAIN_PATH}
+      VERIFIER_SERVER_NAME: ${VERIFIER_SERVER_NAME}
+      VERIFIER_HTTPS_PORT: ${VERIFIER_HTTPS_PORT}
+      VERIFIER_HTTP_PORT: ${VERIFIER_HTTP_PORT}
     restart: unless-stopped
     tty: true
     ports:
       - "80:80"
       - "443:443"
+      - "8000:8000"
+      - "4443:4443"
+      - "8080:8080"
+      - "4444:4444"
     volumes:
-      - ./lab-ui/build:/var/www/ui:consistent
-      - ./nginx/lab-ssl:/etc/nginx/ssl:consistent
-      - ./lab-api:/var/www/api:consistent
-      - ./nginx/lab-conf.d/:/etc/nginx/conf.d/
+      - ./lab-ui/build:/var/www/lab-ui:consistent
+      - ./government-ui/build:/var/www/government-ui:consistent
+      - ./verifier-ui/build:/var/www/verifier-ui:consistent
+      - ./nginx/ssl:/etc/nginx/ssl:consistent
+      - ./lab-api:/var/www/lab-api:consistent
+      - ./government-api:/var/www/government-api:consistent
+      - ./verifier-api:/var/www/verifier-api:consistent
+      - ./nginx/conf.d/:/etc/nginx/templates/
       - ./nginx/docker-entrypoint.d/create-self-signed.sh:/docker-entrypoint.d/10-create-self-signed.sh
     depends_on:
       - "lab-api"
       - "lab-ui"
+      - "government-api"
+      - "government-ui"
+      - "verifier-api"
+      - "verifier-ui"
     networks:
       - app-network
 
+
  # DB Service
-  lab-db:
+  db:
     image: postgres:9.5
-    hostname: lab-db
-    restart: always
+    hostname: db
+    restart: unless-stopped
 #    ports: # Uncomment to access postgres outside of containers
 #      - "5432:5432"
+    volumes:
+     - ./db/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d/
     environment:
       POSTGRES_USER: development
       POSTGRES_PASSWORD: development
     networks:
       - app-network
 
+
+#***************************************************************
+# Lab Services
+#***************************************************************
+
   lab-api:
-    image: node:10-stretch 
+    image: node:12-stretch 
     hostname: lab-api
     restart: unless-stopped
     user: root # we want to run with write permissions for dev, so run as root.
     working_dir: /home/node/app
     environment: 
-      - NODE_ENV=development
+      - DB_HOST=${LAB_API_DB_HOST}
+      - DB=${LAB_API_DB}
+      - DB_USERNAME=${LAB_API_DB_USERNAME}
+      - DB_PASSWORD=${LAB_API_DB_PASSWORD}
+      - NODE_ENV=${NODE_ENV}
       - CONTROLLERPORT=3100
-      - AGENTADDRESS=http://agent-lab:8150
-      - WEB_ROOT=https://localhost
-      - JWT_SECRET=Zu0gPaBdGSP8qwuoK6C1vlBLaXOh6gGq
-      - SESSION_SECRET=Xn2r5u8xjAgD7G3KaPdSgVkYp3s6v9y5
-      - SCHEMA_LAB_ORDER=RuuJwd3JMffNwZ43DcJKN1:2:Lab_Order:1.4
-      - SCHEMA_LAB_RESULT=RuuJwd3JMffNwZ43DcJKN1:2:Lab_Result:1.4
-      - SCHEMA_VACCINATION=RuuJwd3JMffNwZ43DcJKN1:2:Vaccination:1.4
-      - SCHEMA_VACCINE_EXEMPTION=RuuJwd3JMffNwZ43DcJKN1:2:Vaccine_Exemption:1.4
+      - AGENTADDRESS=http://lab-agent:8150
+      - WEB_ROOT=${LAB_WEB_ROOT}
+      - JWT_SECRET=${LAB_JWT_SECRET}
+      - SESSION_SECRET=${LAB_SESSION_SECRET}
+      - GOVERNANCE_PATH=${GOVERNANCE_PATH}
+      - ENC_KEY=7f56e8b49de579768ed0ccc08cae1992
+      - SCHEMA_LAB_ORDER=${SCHEMA_LAB_ORDER}
+      - SCHEMA_LAB_RESULT=${SCHEMA_LAB_RESULT}
+      - SCHEMA_VACCINATION=${SCHEMA_VACCINATION}
+      - SCHEMA_VACCINE_EXEMPTION=${SCHEMA_VACCINE_EXEMPTION}
+      - SCHEMA_MEDICAL_RELEASE=${SCHEMA_MEDICAL_RELEASE}
     volumes:
       - ./lab-api:/home/node/app:consistent
       - ./wait-for-it:/home/node/wait-for-it
     expose:
       - "3100"
     command: >
-      sh -c "npm install && /home/node/wait-for-it/wait-for-it.sh lab-db:5432 && npm run migrate_up_all && npm run dev"
+      sh -c "npm install && /home/node/wait-for-it/wait-for-it.sh -t 300 ${LAB_API_DB_HOST}:5432 && npm run migrate_up_all && npm run dev"
     networks:
       - app-network
     depends_on:
-      - "lab-db"
+      - "db"
 
   lab-ui:
-    image: node:10-stretch
+    image: node:12-stretch
     hostname: lab-ui
     restart: unless-stopped
     user: root # To write to ui folder, we need write permissions. node user does not have this.
     tty: true # keep react from stopping development server
     working_dir: /home/node/app
     environment: 
-      - NODE_ENV=development
+      - NODE_ENV=${NODE_ENV}
       - BROWSER=none  # don't open the web browser
     volumes:
       - ./lab-ui:/home/node/app:rw
@@ -90,36 +128,32 @@ services:
     networks:
       - app-network
     depends_on:
-      - "lab-db"
+      - "db"
 
-  tunnel-lab:
-    image: dbluhm/agent-tunnel
-    command: -s agent-lab:3005 -p 4040 --host ${AGENT_TUNNEL_HOST}
-    networks:
-      - app-network
-
-  agent-lab:
+  lab-agent:
     build:
       context: .
     environment:
-      TUNNEL_ENDPOINT: http://tunnel-lab:4040
       ACAPY_WEBHOOK_URL: http://lab-api:3100/api/controller-webhook
-      # ACAPY_ENDPOINT: ${LAB_ENDPOINT}
-    volumes:
-      - ./acapy-endpoint.sh:/acapy-endpoint.sh
+      ACAPY_ENDPOINT: http://lab-agent:3005
     entrypoint: >
-      sh -c '/acapy-endpoint.sh aca-py "$$@"' --
+      sh -c '/home/indy/wait-for-it/wait-for-it.sh -t 300 ${LAB_AGENT_DB_HOST}:5432 && aca-py "$$@"' --
+    volumes:
+      - ./wait-for-it:/home/indy/wait-for-it
     command: >
         start -it http 0.0.0.0 3005
         -ot http
         --admin 0.0.0.0 8150 --admin-insecure-mode
         --label Lab
-        --genesis-url https://raw.githubusercontent.com/Indicio-tech/indicio-network/master/genesis_files/pool_transactions_testnet_genesis
         --plugin acapy_plugin_data_transfer
+        --plugin acapy_plugin_qa
         --enable-undelivered-queue
         --wallet-type indy
-        --wallet-name default
+        --wallet-name ${LAB_AGENT_DB}
         --wallet-key default
+        --wallet-storage-type postgres_storage
+        --wallet-storage-config '{"url":"${LAB_AGENT_DB_HOST}:5432"}'
+        --wallet-storage-creds '{"account":"${LAB_AGENT_DB_USERNAME}","password":"${LAB_AGENT_DB_PASSWORD}","admin_account":"${LAB_AGENT_ADMIN_DB_USERNAME}","admin_password":"${LAB_AGENT_ADMIN_DB_PASSWORD}"}'
         --auto-provision
         --auto-accept-requests
         --auto-ping-connection
@@ -134,9 +168,44 @@ services:
         --debug-credentials
         --debug-presentations
         --invite --invite-label "LAB (admin)"
+        --genesis-url ${GENESIS_URL} 
+        ${LAB_SEED}
     ports:
      - "3005:3005"
      - "8150:8150"
+    networks:
+      - app-network
+    depends_on:
+      - "db"
+
+  lab-proxy:
+    image: dbluhm/proxy-mediator:7c54489
+    environment:
+      PORT: 3000
+      ENDPOINT: http://lab-proxy:3000
+      ENABLE_STORE: "true"
+      REPO_URI: "${LAB_PROXY_DB}"
+      REPO_KEY: insecure
+      LOG_LEVEL: WARNING
+    networks:
+      - app-network
+    depends_on:
+      - "db"
+
+  lab-proxy-setup:
+    image: dbluhm/proxy-mediator-setup:7c54489
+    environment:
+      - WAIT_BEFORE_HOSTS=3
+      - WAIT_HOSTS=lab-proxy:3000,lab-agent:3005
+      - WAIT_HOSTS_TIMEOUT=300
+      - WAIT_SLEEP_INTERVAL=1
+      - WAIT_HOST_CONNECT_TIMEOUT=10
+      - PROXY=http://lab-proxy:3000
+      - AGENT=http://lab-agent:8150
+      - MEDIATOR_INVITE=https://mediator4.test.indiciotech.io/?c_i=eyJAdHlwZSI6ICJkaWQ6c292OkJ6Q2JzTlloTXJqSGlxWkRUVUFTSGc7c3BlYy9jb25uZWN0aW9ucy8xLjAvaW52aXRhdGlvbiIsICJAaWQiOiAiNjdlMWIyYjctZDkwZi00YjBhLTk3OTEtNDkzNjVmNmQ4MDNjIiwgImxhYmVsIjogIkluZGljaW8gTWVkaWF0b3IiLCAicmVjaXBpZW50S2V5cyI6IFsiNlY3SHFKR3hEdTJFM2JFbndWc2F6TEJ1MTRBaXNyNndadVQzSHBnUkVlb2MiXSwgInNlcnZpY2VFbmRwb2ludCI6ICJodHRwczovL21lZGlhdG9yNC50ZXN0LmluZGljaW90ZWNoLmlvOjQ0MyJ9
+    depends_on:
+      - lab-proxy
+      - lab-agent
     networks:
       - app-network
 
@@ -145,82 +214,55 @@ services:
 # Government Services
 #***************************************************************
 
-  # Nginx Service
-  government-webserver:
-    image: nginx:alpine
-    build:
-      context: nginx
-      dockerfile: Dockerfile-nginx    
-    hostname: government-webserver
-    restart: unless-stopped
-    tty: true
-    ports:
-      - "8000:80"
-      - "4443:443"
-    volumes:
-      - ./government-ui/build:/var/www/ui:consistent
-      - ./nginx/government-ssl:/etc/nginx/ssl:consistent
-      - ./government-api:/var/www/api:consistent
-      - ./nginx/government-conf.d/:/etc/nginx/conf.d/
-      - ./nginx/docker-entrypoint.d/create-self-signed.sh:/docker-entrypoint.d/10-create-self-signed.sh
-    depends_on:
-      - "government-api"
-      - "government-ui"
-    networks:
-      - app-network
-
- # DB Service
-  government-db:
-    image: postgres:9.5
-    hostname: government-db
-    restart: always
-#    ports: # Uncomment to access postgres outside of containers
-#      - "5432:5432"
-    environment:
-      POSTGRES_USER: government
-      POSTGRES_PASSWORD: government
-    networks:
-      - app-network
-
   government-api:
-    image: node:10-stretch 
+    image: node:12-stretch 
     hostname: government-api
     restart: unless-stopped
     user: root # we want to run with write permissions for dev, so run as root.
     working_dir: /home/node/app
     environment: 
-      - NODE_ENV=development
+      - DB_HOST=${GOVERNMENT_API_DB_HOST}
+      - DB=${GOVERNMENT_API_DB}
+      - DB_USERNAME=${GOVERNMENT_API_DB_USERNAME}
+      - DB_PASSWORD=${GOVERNMENT_API_DB_PASSWORD}
+      - NODE_ENV=${NODE_ENV}
       - CONTROLLERPORT=3100
-      - AGENTADDRESS=http://agent-government:8151
-      - WEB_ROOT=https://localhost:8000
-      - JWT_SECRET=Zu0gPaBdGkP8qwuoK6C1vlBLaXOh6gGq
-      - SESSION_SECRET=Xn2r558xjAgD7G3KaPdSgVkYp3s6v9y5
-      - SCHEMA_LAB_ORDER=RuuJwd3JMffNwZ43DcJKN1:2:Lab_Order:1.4
-      - SCHEMA_LAB_RESULT=RuuJwd3JMffNwZ43DcJKN1:2:Lab_Result:1.4
-      - SCHEMA_VACCINATION=RuuJwd3JMffNwZ43DcJKN1:2:Vaccination:1.4
-      - SCHEMA_VACCINE_EXEMPTION=RuuJwd3JMffNwZ43DcJKN1:2:Vaccine_Exemption:1.4
-      - SCHEMA_TRUSTED_TRAVELER=RuuJwd3JMffNwZ43DcJKN1:2:Trusted_Traveler:1.4 
+      - AGENTADDRESS=http://government-agent:8151
+      - WEB_ROOT=${GOVERNMENT_WEB_ROOT}
+      - DISABLE_SSL_CHECK=${DISABLE_SSL_CHECK}
+      - JWT_SECRET=${GOVERNMENT_JWT_SECRET}
+      - SESSION_SECRET=${GOVERNMENT_SESSION_SECRET}
+      - GOVERNANCE_PATH=${GOVERNANCE_PATH}
+      - ENC_KEY=7f56e8b49de579768ed0ccc08cae1992
+      - SCHEMA_LAB_ORDER=${SCHEMA_LAB_ORDER}
+      - SCHEMA_LAB_RESULT=${SCHEMA_LAB_RESULT}
+      - SCHEMA_VACCINATION=${SCHEMA_VACCINATION}
+      - SCHEMA_VACCINE_EXEMPTION=${SCHEMA_VACCINE_EXEMPTION}
+      - SCHEMA_MEDICAL_RELEASE=${SCHEMA_MEDICAL_RELEASE}
+      - SCHEMA_TRUSTED_TRAVELER=${SCHEMA_TRUSTED_TRAVELER}
+      - GOVERNMENT_API=${GOVERNMENT_API}
+      - APIKEY=${GOVERNMENT_APIKEY}
     volumes:
       - ./government-api:/home/node/app:consistent
       - ./wait-for-it:/home/node/wait-for-it
     expose:
       - "3100"
     command: >
-      sh -c "npm install && /home/node/wait-for-it/wait-for-it.sh government-db:5432 && npm run migrate_up_all && npm run dev"
+      sh -c "npm install && /home/node/wait-for-it/wait-for-it.sh -t 300 ${GOVERNMENT_API_DB_HOST}:5432 && npm run migrate_up_all && npm run dev"
     networks:
       - app-network
     depends_on:
-      - "government-db"
+      - "db"
 
   government-ui:
-    image: node:10-stretch
+    image: node:12-stretch
     hostname: government-ui
     restart: unless-stopped
     user: root # To write to ui folder, we need write permissions. node user does not have this.
     tty: true # keep react from stopping development server
     working_dir: /home/node/app
     environment: 
-      - NODE_ENV=development
+      - NODE_ENV=${NODE_ENV}
       - BROWSER=none  # don't open the web browser
     volumes:
       - ./government-ui:/home/node/app:rw
@@ -231,36 +273,32 @@ services:
     networks:
       - app-network
     depends_on:
-      - "government-db"
+      - "db"
 
-  tunnel-government:
-    image: dbluhm/agent-tunnel
-    command: -s agent-government:3006 -p 4040 --host ${AGENT_TUNNEL_HOST}
-    networks:
-      - app-network 
-
-  agent-government:
+  government-agent:
     build:
       context: .
     environment:
-      TUNNEL_ENDPOINT: http://tunnel-government:4040
       ACAPY_WEBHOOK_URL: http://government-api:3100/api/controller-webhook
-      # ACAPY_ENDPOINT: ${GOVERNMENT_ENDPOINT}
-    volumes:
-      - ./acapy-endpoint.sh:/acapy-endpoint.sh
+      ACAPY_ENDPOINT: http://government-agent:3006
     entrypoint: >
-      sh -c '/acapy-endpoint.sh aca-py "$$@"' --
+      sh -c '/home/indy/wait-for-it/wait-for-it.sh -t 300 ${GOVERNMENT_AGENT_DB_HOST}:5432 && aca-py "$$@"' --
+    volumes:
+      - ./wait-for-it:/home/indy/wait-for-it
     command: >
         start -it http 0.0.0.0 3006
         -ot http
         --admin 0.0.0.0 8151 --admin-insecure-mode
         --label Government
-        --genesis-url https://raw.githubusercontent.com/Indicio-tech/indicio-network/master/genesis_files/pool_transactions_testnet_genesis
         --plugin acapy_plugin_data_transfer
+        --plugin acapy_plugin_qa
         --enable-undelivered-queue
         --wallet-type indy
-        --wallet-name default
+        --wallet-name ${GOVERNMENT_AGENT_DB}
         --wallet-key default
+        --wallet-storage-type postgres_storage
+        --wallet-storage-config '{"url":"${GOVERNMENT_AGENT_DB_HOST}:5432"}'
+        --wallet-storage-creds '{"account":"${GOVERNMENT_AGENT_DB_USERNAME}","password":"${GOVERNMENT_AGENT_DB_PASSWORD}","admin_account":"${GOVERNMENT_AGENT_ADMIN_DB_USERNAME}","admin_password":"${GOVERNMENT_AGENT_ADMIN_DB_PASSWORD}"}'
         --auto-provision
         --auto-accept-requests
         --auto-ping-connection
@@ -275,89 +313,88 @@ services:
         --debug-credentials
         --debug-presentations
         --invite --invite-label "GOVERNMENT (admin)"
+        --genesis-url ${GENESIS_URL}
+        ${GOVERNMENT_SEED}
     ports:
      - "3006:3006"
      - "8151:8151"
     networks:
       - app-network
 
+  government-proxy:
+    image: dbluhm/proxy-mediator:7c54489
+    environment:
+      PORT: 3000
+      ENDPOINT: http://government-proxy:3000
+      ENABLE_STORE: "true"
+      REPO_URI: "${GOVERNMENT_PROXY_DB}"
+      REPO_KEY: insecure
+      LOG_LEVEL: WARNING
+    networks:
+      - app-network
+
+  government-proxy-setup:
+    image: dbluhm/proxy-mediator-setup:7c54489
+    environment:
+      - WAIT_BEFORE_HOSTS=3
+      - WAIT_HOSTS=government-proxy:3000,government-agent:3006
+      - WAIT_HOSTS_TIMEOUT=300
+      - WAIT_SLEEP_INTERVAL=1
+      - WAIT_HOST_CONNECT_TIMEOUT=10
+      - PROXY=http://government-proxy:3000
+      - AGENT=http://government-agent:8151
+      - MEDIATOR_INVITE=https://mediator4.test.indiciotech.io/?c_i=eyJAdHlwZSI6ICJkaWQ6c292OkJ6Q2JzTlloTXJqSGlxWkRUVUFTSGc7c3BlYy9jb25uZWN0aW9ucy8xLjAvaW52aXRhdGlvbiIsICJAaWQiOiAiNjdlMWIyYjctZDkwZi00YjBhLTk3OTEtNDkzNjVmNmQ4MDNjIiwgImxhYmVsIjogIkluZGljaW8gTWVkaWF0b3IiLCAicmVjaXBpZW50S2V5cyI6IFsiNlY3SHFKR3hEdTJFM2JFbndWc2F6TEJ1MTRBaXNyNndadVQzSHBnUkVlb2MiXSwgInNlcnZpY2VFbmRwb2ludCI6ICJodHRwczovL21lZGlhdG9yNC50ZXN0LmluZGljaW90ZWNoLmlvOjQ0MyJ9
+    depends_on:
+      - government-proxy
+      - government-agent
+    networks:
+      - app-network
 
 #***************************************************************
 # Verifier Services
 #***************************************************************
 
-  # Nginx Service
-  verifier-webserver:
-    image: nginx:alpine
-    build:
-      context: nginx
-      dockerfile: Dockerfile-nginx    
-    hostname: verifier-webserver
-    restart: unless-stopped
-    tty: true
-    ports:
-      - "8080:80"
-      - "4444:443"
-    volumes:
-      - ./verifier-ui/build:/var/www/ui:consistent
-      - ./nginx/verifier-ssl:/etc/nginx/ssl:consistent
-      - ./verifier-api:/var/www/api:consistent
-      - ./nginx/verifier-conf.d/:/etc/nginx/conf.d/
-      - ./nginx/docker-entrypoint.d/create-self-signed.sh:/docker-entrypoint.d/10-create-self-signed.sh
-    depends_on:
-      - "verifier-api"
-      - "verifier-ui"
-    networks:
-      - app-network
-
- # DB Service
-  verifier-db:
-    image: postgres:9.5
-    hostname: verifier-db
-    restart: always
-#    ports: # Uncomment to access postgres outside of containers
-#      - "5432:5432"
-    environment:
-      POSTGRES_USER: verifier
-      POSTGRES_PASSWORD: verifier
-    networks:
-      - app-network
-
   verifier-api:
-    image: node:10-stretch 
+    image: node:12-stretch 
     hostname: verifier-api
     restart: unless-stopped
     user: root # we want to run with write permissions for dev, so run as root.
     working_dir: /home/node/app
     environment: 
-      - NODE_ENV=development
+      - DB_HOST=${VERIFIER_API_DB_HOST}
+      - DB=${VERIFIER_API_DB}
+      - DB_USERNAME=${VERIFIER_API_DB_USERNAME}
+      - DB_PASSWORD=${VERIFIER_API_DB_PASSWORD}
+      - NODE_ENV=${NODE_ENV}
       - CONTROLLERPORT=3100
-      - AGENTADDRESS=http://agent-verifier:8152
-      - WEB_ROOT=https://localhost:8000
-      - JWT_SECRET=Zu0gPaBdGkP8qwuoK6C1vlBLaXOh6gGq
-      - SESSION_SECRET=Xn2r558xjAgD7G3KaPdSgVkYp3s6v9y5
-      - SCHEMA_TRUSTED_TRAVELER=RuuJwd3JMffNwZ43DcJKN1:2:Trusted_Traveler:1.4 
+      - AGENTADDRESS=http://verifier-agent:8154
+      - GOVERNANCE_PATH=${GOVERNANCE_PATH}
+      - ENC_KEY=7f56e8b49de579768ed0ccc08cae1992
+      - WEB_ROOT=${VERIFIER_WEB_ROOT}
+      - JWT_SECRET=${VERIFIER_JWT_SECRET}
+      - SESSION_SECRET=${VERIFIER_SESSION_SECRET}
+      - SCHEMA_TRUSTED_TRAVELER=${SCHEMA_TRUSTED_TRAVELER}
     volumes:
       - ./verifier-api:/home/node/app:consistent
       - ./wait-for-it:/home/node/wait-for-it
     expose:
       - "3100"
     command: >
-      sh -c "npm install && /home/node/wait-for-it/wait-for-it.sh verifier-db:5432 && npm run migrate_up_all && npm run dev"
+      sh -c "npm install && /home/node/wait-for-it/wait-for-it.sh -t 300 ${VERIFIER_API_DB_HOST}:5432 && npm run migrate_up_all && npm run dev"
     networks:
       - app-network
     depends_on:
-      - "verifier-db"
+      - "db"
 
   verifier-ui:
-    image: node:10-stretch
+    image: node:12-stretch
     hostname: verifier-ui
     restart: unless-stopped
     user: root # To write to ui folder, we need write permissions. node user does not have this.
     tty: true # keep react from stopping development server
     working_dir: /home/node/app
     environment: 
-      - NODE_ENV=development
+      - NODE_ENV=${NODE_ENV}
       - BROWSER=none  # don't open the web browser
     volumes:
       - ./verifier-ui:/home/node/app:rw
@@ -368,36 +405,31 @@ services:
     networks:
       - app-network
     depends_on:
-      - "verifier-db"
+      - "db"
 
-  tunnel-verifier:
-    image: dbluhm/agent-tunnel
-    command: -s agent-verifier:3007 -p 4040 --host ${AGENT_TUNNEL_HOST}
-    networks:
-      - app-network 
-
-  agent-verifier:
+  verifier-agent:
     build:
       context: .
     environment:
-      TUNNEL_ENDPOINT: http://tunnel-verifier:4040
       ACAPY_WEBHOOK_URL: http://verifier-api:3100/api/controller-webhook
-      # ACAPY_ENDPOINT: ${VERIFIER_ENDPOINT}
-    volumes:
-      - ./acapy-endpoint.sh:/acapy-endpoint.sh
+      ACAPY_ENDPOINT: http://verifier-agent:3009
     entrypoint: >
-      sh -c '/acapy-endpoint.sh aca-py "$$@"' --
+      sh -c '/home/indy/wait-for-it/wait-for-it.sh -t 300 ${VERIFIER_AGENT_DB_HOST}:5432 && aca-py "$$@"' --
+    volumes:
+      - ./wait-for-it:/home/indy/wait-for-it
     command: >
-        start -it http 0.0.0.0 3007
+        start -it http 0.0.0.0 3009
         -ot http
-        --admin 0.0.0.0 8152 --admin-insecure-mode
+        --admin 0.0.0.0 8154 --admin-insecure-mode
         --label Verifier
-        --genesis-url https://raw.githubusercontent.com/Indicio-tech/indicio-network/master/genesis_files/pool_transactions_testnet_genesis
-        --plugin acapy_plugin_data_transfer
+        --plugin acapy_plugin_qa
         --enable-undelivered-queue
         --wallet-type indy
-        --wallet-name default
+        --wallet-name ${VERIFIER_AGENT_DB}
         --wallet-key default
+        --wallet-storage-type postgres_storage
+        --wallet-storage-config '{"url":"${VERIFIER_AGENT_DB_HOST}:5432"}'
+        --wallet-storage-creds '{"account":"${VERIFIER_AGENT_DB_USERNAME}","password":"${VERIFIER_AGENT_DB_PASSWORD}","admin_account":"${VERIFIER_AGENT_ADMIN_DB_USERNAME}","admin_password":"${VERIFIER_AGENT_ADMIN_DB_PASSWORD}"}'
         --auto-provision
         --auto-accept-requests
         --auto-ping-connection
@@ -412,40 +444,62 @@ services:
         --debug-credentials
         --debug-presentations
         --invite --invite-label "VERIFIER (admin)"
+        --genesis-url ${GENESIS_URL} 
+        ${VERIFIER_SEED}
     ports:
-     - "3007:3007"
-     - "8152:8152"
-    networks:
-      - app-network
-
-
-#***************************************************************
-# Dev Services
-#***************************************************************
-
-  tunnel-test:
-    image: dbluhm/agent-tunnel
-    command: -s agent-test:3010 -p 4040 --host ${AGENT_TUNNEL_HOST}
-    networks:
-      - app-network
-
-  agent-test:
-    image: dbluhm/acapy-toolbox:939bbe6
-    environment:
-      TUNNEL_ENDPOINT: http://tunnel-test:4040
-    volumes:
-      - ./acapy-endpoint.sh:/acapy-endpoint.sh
-    ports:
-      - 3010:3010
+      - 3009:3009
       - 8154:8154
     networks:
       - app-network
+
+  verifier-proxy:
+    image: dbluhm/proxy-mediator:7c54489
+    environment:
+      PORT: 3000
+      ENDPOINT: http://verifier-proxy:3000
+      ENABLE_STORE: "true"
+      REPO_URI: "${VERIFIER_PROXY_DB}"
+      REPO_KEY: insecure
+      LOG_LEVEL: WARNING
+    networks:
+      - app-network
+
+  verifier-proxy-setup:
+    image: dbluhm/proxy-mediator-setup:7c54489
+    environment:
+      - WAIT_BEFORE_HOSTS=3
+      - WAIT_HOSTS=verifier-proxy:3000,verifier-agent:3009
+      - WAIT_HOSTS_TIMEOUT=300
+      - WAIT_SLEEP_INTERVAL=1
+      - WAIT_HOST_CONNECT_TIMEOUT=10
+      - PROXY=http://verifier-proxy:3000
+      - AGENT=http://verifier-agent:8154
+      - MEDIATOR_INVITE=https://mediator4.test.indiciotech.io/?c_i=eyJAdHlwZSI6ICJkaWQ6c292OkJ6Q2JzTlloTXJqSGlxWkRUVUFTSGc7c3BlYy9jb25uZWN0aW9ucy8xLjAvaW52aXRhdGlvbiIsICJAaWQiOiAiNjdlMWIyYjctZDkwZi00YjBhLTk3OTEtNDkzNjVmNmQ4MDNjIiwgImxhYmVsIjogIkluZGljaW8gTWVkaWF0b3IiLCAicmVjaXBpZW50S2V5cyI6IFsiNlY3SHFKR3hEdTJFM2JFbndWc2F6TEJ1MTRBaXNyNndadVQzSHBnUkVlb2MiXSwgInNlcnZpY2VFbmRwb2ludCI6ICJodHRwczovL21lZGlhdG9yNC50ZXN0LmluZGljaW90ZWNoLmlvOjQ0MyJ9
+    depends_on:
+      - verifier-proxy
+      - verifier-agent
+    networks:
+      - app-network
+
+#***************************************************************
+# Test Services
+#***************************************************************
+
+  test-agent:
+    image: dbluhm/acapy-toolbox:939bbe6
+    environment:
+      ACAPY_ENDPOINT: http://test-agent:3010
+    ports:
+      - 3010:3010
+      - 8155:8155
+    networks:
+      - app-network
     entrypoint: >
-      sh -c '/acapy-endpoint.sh aca-py "$$@"' --
+      sh -c 'aca-py "$$@"' --
     command: >
       start --arg-file default.yml
       -it acapy_plugin_toolbox.http_ws 0.0.0.0 3010
-      --admin 0.0.0.0 8154 --admin-insecure-mode
+      --admin 0.0.0.0 8155 --admin-insecure-mode
       --label "Test Agent"
       --wallet-type indy
       --wallet-name test
@@ -460,10 +514,44 @@ services:
       --auto-respond-presentation-proposal
       --auto-respond-presentation-request
       --auto-verify-presentation
-      --genesis-url https://raw.githubusercontent.com/Indicio-tech/indicio-network/master/genesis_files/pool_transactions_testnet_genesis
+      --genesis-url ${GENESIS_URL} 
+      ${TEST_SEED}
+
+  test-proxy:
+    image: dbluhm/proxy-mediator:7c54489
+    volumes:
+      - test-proxy-store:/app/store:z
+    environment:
+      PORT: 3000
+      ENDPOINT: http://test-proxy:3000
+      ENABLE_STORE: "true"
+      REPO_URI: "sqlite:///app/store/db"
+      REPO_KEY: insecure
+      LOG_LEVEL: WARNING
+    networks:
+      - app-network
+
+  test-proxy-setup:
+    image: dbluhm/proxy-mediator-setup:7c54489
+    environment:
+      - WAIT_BEFORE_HOSTS=3
+      - WAIT_HOSTS=test-proxy:3000,test-agent:3010
+      - WAIT_HOSTS_TIMEOUT=300
+      - WAIT_SLEEP_INTERVAL=1
+      - WAIT_HOST_CONNECT_TIMEOUT=10
+      - PROXY=http://test-proxy:3000
+      - AGENT=http://test-agent:8155
+      - MEDIATOR_INVITE=https://mediator4.test.indiciotech.io/?c_i=eyJAdHlwZSI6ICJkaWQ6c292OkJ6Q2JzTlloTXJqSGlxWkRUVUFTSGc7c3BlYy9jb25uZWN0aW9ucy8xLjAvaW52aXRhdGlvbiIsICJAaWQiOiAiNjdlMWIyYjctZDkwZi00YjBhLTk3OTEtNDkzNjVmNmQ4MDNjIiwgImxhYmVsIjogIkluZGljaW8gTWVkaWF0b3IiLCAicmVjaXBpZW50S2V5cyI6IFsiNlY3SHFKR3hEdTJFM2JFbndWc2F6TEJ1MTRBaXNyNndadVQzSHBnUkVlb2MiXSwgInNlcnZpY2VFbmRwb2ludCI6ICJodHRwczovL21lZGlhdG9yNC50ZXN0LmluZGljaW90ZWNoLmlvOjQ0MyJ9
+    depends_on:
+      - test-proxy
+      - test-agent
+    networks:
+      - app-network
 
 #Docker Networks
 networks:
   app-network:
     driver: bridge
 
+volumes:
+  test-proxy-store:
