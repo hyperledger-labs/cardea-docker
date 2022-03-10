@@ -33,6 +33,7 @@ The first time you bring up the containers and agent(in a container or separate)
 
     docker-compose -f docker-compose.dev.yml exec government-api npm run first-time-setup
     docker-compose -f docker-compose.dev.yml exec lab-api npm run first-time-setup
+    docker-compose -f docker-compose.dev.yml exec verifier-api npm run first-time-setup
 
 To reset all the containers, you can run:
 
