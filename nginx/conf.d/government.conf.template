@@ -29,7 +29,7 @@ server {
 	root /var/www/government-ui;
 
 	location / {
-		return 301 https://$host:${GOVERNMENT_HTTPS_PORT};
+		return 301 https://$host:${GOVERNMENT_HTTPS_PORT}$request_uri;
 	}
 
 	location /api/governance-framework {

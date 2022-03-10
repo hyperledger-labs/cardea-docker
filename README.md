@@ -6,6 +6,14 @@ One method is to use Let's Encrypt:
 
 https://letsencrypt.org/
 
+To use the docker-compose files, we may need to install a newer version of docker-compose.
+
+You may need to remove your previous version of docker first.
+
+To install the lastest version of docker-compose, run.
+
+    sudo curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
+    sudo chmod +x /usr/local/bin/docker-compose
 
 First, checkout the repository.
 
@@ -15,43 +23,41 @@ Then get the git submodules
 
     git submodule update --init
 
-If you are setting up the agents in a production environment, create an .env file for each enterprise agent (lab and government) with the following values customized for each (you can put these values in docker-compose-release.yml, but they would be overwritten with every new pull from github):
-    WEB_ROOT=https://localhost:port_number_if_necessary
-    JWT_SECRET=yoursecrethere (32 alpha-numeric digits, e.g. 1234567890ABCDEFHIJKLMNOPQRSTUVW)
-    SESSION_SECRET=yoursecrethere (32 alpha-numeric digits, e.g. 1234567890ABCDEFHIJKLMNOPQRSTUVW)
+Copy dev.env or prod.env to .env and modify according to your needs
 
 We can finally start the docker containers by runnning
 
-    docker-compose up
+    docker-compose -f docker-compose.dev.yml up
 
 The first time you bring up the containers and agent(in a container or separate) or reset them, you must run the following script after the controller api containers have started:
 
-    docker-compose exec government-api npm run first-time-setup
-    docker-compose exec lab-api npm run first-time-setup
+    docker-compose -f docker-compose.dev.yml exec government-api npm run first-time-setup
+    docker-compose -f docker-compose.dev.yml exec lab-api npm run first-time-setup
+    docker-compose -f docker-compose.dev.yml exec verifier-api npm run first-time-setup
 
 To reset all the containers, you can run:
 
-    docker-compose rm
+    docker-compose -f docker-compose.dev.yml rm
 
 To remove just one container, you can run something like the following:
 
-    docker-compose rm api
+    docker-compose -f docker-compose.dev.yml rm api
 
 If you change the agent dependencies or version, you must start the docker containers with a --build flag:
 
-    docker-compose up --build
+    docker-compose -f docker-compose.dev.yml up --build
 
 If you want you can run the containers detached by adding the -d command. For more details about docker-compose up, you can run
 
-    docker-compose up --help
+    docker-compose -f docker-compose.dev.yml up --help
 
 If you need to execute commands in one of the running containers, you can run something like the following.
 
-    docker-compose exec db sh
+    docker-compose -f docker-compose.dev.yml exec db sh
 
 In the previous case we entered the db container and ran the command sh. Tab completion is helpful in seeing the list of containers available.
 
-    $ docker-compose exec 
+    $ docker-compose -f docker-compose.dev.yml exec 
     api        db         ui         webserver
 
 Follow this link to clone and install Aries Toolbox for using test agent.

@@ -1,0 +1,142 @@
+version: '3'
+services:
+
+  # Nginx Service
+  webserver:
+    extends:
+      file: common-services.yml
+      service: webserver
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DEV_COMMENT: '' # Enable prod settings
+      PROD_COMMENT: '#' # Disable dev settings
+#    volumes: # Remove government service from webserver
+#      - type: tmpfs
+#        target: /etc/nginx/templates/
+#      - ./nginx/conf.d/lab.conf.template:/etc/nginx/templates/lab.conf.template
+#      - ./nginx/conf.d/verifier.conf.template:/etc/nginx/templates/verifier.conf.template
+
+
+
+ # DB Service
+  db:
+    extends:
+      file: common-services.yml
+      service: db
+    volumes:
+      - ./postgres-db:/var/lib/postgresql/data:consistent
+    environment:
+      POSTGRES_USER: development
+      POSTGRES_PASSWORD: development
+      PGDATA: /var/lib/postgresql/data/pgdata
+
+
+#***************************************************************
+# Lab Services
+#***************************************************************
+
+  lab-api:
+    extends:
+      file: common-services.yml
+      service: lab-api
+    command: >
+      sh -c "npm install && /home/node/wait-for-it/wait-for-it.sh -t 300 ${LAB_API_DB_HOST}:5432 && npm run migrate_up_all && npm start"
+
+  lab-ui:
+    extends:
+      file: common-services.yml
+      service: lab-ui
+    restart: "no"      
+    command: >
+      sh -c "npm install && npm run build"      
+
+  lab-agent:
+    extends:
+      file: common-services.yml
+      service: lab-agent
+
+  lab-proxy:
+    extends:
+      file: common-services.yml
+      service: lab-proxy
+
+  lab-proxy-setup:
+    extends:
+      file: common-services.yml
+      service: lab-proxy-setup
+
+
+#***************************************************************
+# Government Services
+#***************************************************************
+
+  government-api:
+    extends:
+      file: common-services.yml
+      service: government-api
+    command: >
+      sh -c "npm install && /home/node/wait-for-it/wait-for-it.sh -t 300 ${GOVERNMENT_API_DB_HOST}:5432 && npm run migrate_up_all && npm run start"
+
+  government-ui:
+    extends:
+      file: common-services.yml
+      service: government-ui
+    restart: "no"      
+    command: >
+      sh -c "npm install && npm run build"      
+
+  government-agent:
+    extends:
+      file: common-services.yml
+      service: government-agent
+
+  government-proxy:
+    extends:
+      file: common-services.yml
+      service: government-proxy
+
+  government-proxy-setup:
+    extends:
+      file: common-services.yml
+      service: government-proxy-setup
+
+#***************************************************************
+# Verifier Services
+#***************************************************************
+
+  verifier-api:
+    extends:
+      file: common-services.yml
+      service: verifier-api
+    command: >
+      sh -c "npm install && /home/node/wait-for-it/wait-for-it.sh -t 300 ${VERIFIER_API_DB_HOST}:5432 && npm run migrate_up_all && npm run start"
+
+  verifier-ui:
+    extends:
+      file: common-services.yml
+      service: verifier-ui
+    restart: "no"      
+    command: >
+      sh -c "npm install && npm run build"      
+
+  verifier-agent:
+    extends:
+      file: common-services.yml
+      service: verifier-agent
+
+  verifier-proxy:
+    extends:
+      file: common-services.yml
+      service: verifier-proxy
+
+  verifier-proxy-setup:
+    extends:
+      file: common-services.yml
+      service: verifier-proxy-setup
+
+#Docker Networks
+networks:
+  app-network:
+    driver: bridge
