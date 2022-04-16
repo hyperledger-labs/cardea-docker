@@ -90,6 +90,7 @@ services:
       - WEB_ROOT=${LAB_WEB_ROOT}
       - JWT_SECRET=${LAB_JWT_SECRET}
       - SESSION_SECRET=${LAB_SESSION_SECRET}
+      - ENC_KEY=${LAB_ENC_KEY}
       - GOVERNANCE_PATH=${GOVERNANCE_PATH}
       - SCHEMA_LAB_ORDER=${SCHEMA_LAB_ORDER}
       - SCHEMA_LAB_RESULT=${SCHEMA_LAB_RESULT}
@@ -179,13 +180,14 @@ services:
 
   lab-proxy:
     image: dbluhm/proxy-mediator:7c54489
+    restart: unless-stopped
     environment:
       PORT: 3000
       ENDPOINT: http://lab-proxy:3000
       ENABLE_STORE: "true"
       REPO_URI: "${LAB_PROXY_DB}"
       REPO_KEY: insecure
-      LOG_LEVEL: DEBUG
+      LOG_LEVEL: WARNING
     networks:
       - app-network
     depends_on:
@@ -231,6 +233,7 @@ services:
       - DISABLE_SSL_CHECK=${DISABLE_SSL_CHECK}
       - JWT_SECRET=${GOVERNMENT_JWT_SECRET}
       - SESSION_SECRET=${GOVERNMENT_SESSION_SECRET}
+      - ENC_KEY=${GOVERNMENT_ENC_KEY}
       - GOVERNANCE_PATH=${GOVERNANCE_PATH}
       - SCHEMA_LAB_ORDER=${SCHEMA_LAB_ORDER}
       - SCHEMA_LAB_RESULT=${SCHEMA_LAB_RESULT}
@@ -321,13 +324,14 @@ services:
 
   government-proxy:
     image: dbluhm/proxy-mediator:7c54489
+    restart: unless-stopped
     environment:
       PORT: 3000
       ENDPOINT: http://government-proxy:3000
       ENABLE_STORE: "true"
       REPO_URI: "${GOVERNMENT_PROXY_DB}"
       REPO_KEY: insecure
-      LOG_LEVEL: DEBUG
+      LOG_LEVEL: WARNING
     networks:
       - app-network
 
@@ -369,6 +373,7 @@ services:
       - WEB_ROOT=${VERIFIER_WEB_ROOT}
       - JWT_SECRET=${VERIFIER_JWT_SECRET}
       - SESSION_SECRET=${VERIFIER_SESSION_SECRET}
+      - ENC_KEY=${VERIFIER_ENC_KEY}
       - SCHEMA_TRUSTED_TRAVELER=${SCHEMA_TRUSTED_TRAVELER}
     volumes:
       - ./verifier-api:/home/node/app:consistent
@@ -449,13 +454,14 @@ services:
 
   verifier-proxy:
     image: dbluhm/proxy-mediator:7c54489
+    restart: unless-stopped
     environment:
       PORT: 3000
       ENDPOINT: http://verifier-proxy:3000
       ENABLE_STORE: "true"
       REPO_URI: "${VERIFIER_PROXY_DB}"
       REPO_KEY: insecure
-      LOG_LEVEL: DEBUG
+      LOG_LEVEL: WARNING
     networks:
       - app-network
 
@@ -514,6 +520,7 @@ services:
 
   test-proxy:
     image: dbluhm/proxy-mediator:7c54489
+    restart: unless-stopped
     volumes:
       - test-proxy-store:/app/store:z
     environment:
@@ -522,7 +529,7 @@ services:
       ENABLE_STORE: "true"
       REPO_URI: "sqlite:///app/store/db"
       REPO_KEY: insecure
-      LOG_LEVEL: DEBUG
+      LOG_LEVEL: WARNING
     networks:
       - app-network
 
