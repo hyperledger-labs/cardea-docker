@@ -41,52 +41,7 @@ server {
 		try_files $uri @api;
 	}
 
-	location /api/governance-framework-basic-message {
-		allow all;
-
-		alias /var/www/lab-api/web;
-		# First attempt to serve request as file, then
-		# as directory, then fall back to displaying a 404.
-		try_files $uri @api;
-	}
-
-	location /api/governance-framework-ask-demographics {
-		allow all;
-
-		alias /var/www/lab-api/web;
-		# First attempt to serve request as file, then
-		# as directory, then fall back to displaying a 404.
-		try_files $uri @api;
-	}
-
-	location /api/governance-framework-request-demographics {
-		allow all;
-
-		alias /var/www/lab-api/web;
-		# First attempt to serve request as file, then
-		# as directory, then fall back to displaying a 404.
-		try_files $uri @api;
-	}
-
-	location /api/governance-framework-issue-lab-result {
-		allow all;
-
-		alias /var/www/lab-api/web;
-		# First attempt to serve request as file, then
-		# as directory, then fall back to displaying a 404.
-		try_files $uri @api;
-	}
-
-	location /api/governance-framework-issue-medical-release {
-		allow all;
-
-		alias /var/www/lab-api/web;
-		# First attempt to serve request as file, then
-		# as directory, then fall back to displaying a 404.
-		try_files $uri @api;
-	}
-
-	location /api/governance-framework-request-presentation {
+	location /api/governance-framework-atomic-actions {
 		allow all;
 
 		alias /var/www/lab-api/web;
