@@ -41,6 +41,15 @@ server {
 		try_files $uri @api;
 	}
 
+	location /api/governance-framework-atomic-actions {
+		allow all;
+
+		alias /var/www/lab-api/web;
+		# First attempt to serve request as file, then
+		# as directory, then fall back to displaying a 404.
+		try_files $uri @api;
+	}
+
 	location @api {
 		allow all;
 
