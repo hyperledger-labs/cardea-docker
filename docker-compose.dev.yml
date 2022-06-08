@@ -1,0 +1,187 @@
+version: '3'
+services:
+
+  # Nginx Service
+  webserver:
+    extends:
+      file: common-services.yml
+      service: webserver
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8000:8000"
+      - "4443:4443"
+      - "8080:8080"
+      - "4444:4444"
+
+
+ # DB Service
+  db:
+    extends:
+      file: common-services.yml
+      service: db
+
+#***************************************************************
+# Lab Services
+#***************************************************************
+
+  lab-api:
+    extends:
+      file: common-services.yml
+      service: lab-api
+
+  lab-ui:
+    extends:
+      file: common-services.yml
+      service: lab-ui
+
+  lab-agent:
+    extends:
+      file: common-services.yml
+      service: lab-agent
+
+  lab-proxy:
+    extends:
+      file: common-services.yml
+      service: lab-proxy
+
+  lab-proxy-setup:
+    extends:
+      file: common-services.yml
+      service: lab-proxy-setup
+
+
+#***************************************************************
+# Government Services
+#***************************************************************
+
+  government-api:
+    extends:
+      file: common-services.yml
+      service: government-api
+
+  government-ui:
+    extends:
+      file: common-services.yml
+      service: government-ui
+
+  government-agent:
+    extends:
+      file: common-services.yml
+      service: government-agent
+
+  government-proxy:
+    extends:
+      file: common-services.yml
+      service: government-proxy
+
+  government-proxy-setup:
+    extends:
+      file: common-services.yml
+      service: government-proxy-setup
+
+#***************************************************************
+# Verifier Services
+#***************************************************************
+
+  verifier-api:
+    extends:
+      file: common-services.yml
+      service: verifier-api
+
+  verifier-ui:
+    extends:
+      file: common-services.yml
+      service: verifier-ui
+
+  verifier-agent:
+    extends:
+      file: common-services.yml
+      service: verifier-agent
+
+  verifier-proxy:
+    extends:
+      file: common-services.yml
+      service: verifier-proxy
+
+  verifier-proxy-setup:
+    extends:
+      file: common-services.yml
+      service: verifier-proxy-setup
+
+#***************************************************************
+# Test Services
+#***************************************************************
+
+  test-agent:
+    image: dbluhm/acapy-toolbox:939bbe6
+    environment:
+      ACAPY_ENDPOINT: http://test-agent:3010
+    ports:
+      - 3010:3010
+      - 8155:8155
+    networks:
+      - app-network
+    entrypoint: >
+      sh -c 'aca-py "$$@"' --
+    volumes:
+      - ./test-agent.yml:/home/indy/test-agent.yml 
+    command: >
+      start --arg-file test-agent.yml
+      -it acapy_plugin_toolbox.http_ws 0.0.0.0 3010
+      --admin 0.0.0.0 8155 --admin-insecure-mode
+      --label "Test Agent"
+      --wallet-type indy
+      --wallet-name test
+      --wallet-key test
+      --auto-provision
+      --auto-accept-requests
+      --auto-ping-connection
+      --auto-respond-credential-proposal
+      --auto-respond-credential-offer
+      --auto-respond-credential-request
+      --auto-store-credential
+      --auto-respond-presentation-proposal
+      --auto-respond-presentation-request
+      --auto-verify-presentation
+      --genesis-url ${GENESIS_URL} 
+      ${TEST_SEED}
+
+  test-proxy:
+    image: dbluhm/proxy-mediator:7c54489
+    volumes:
+      - test-proxy-store:/app/store:z
+    environment:
+      PORT: 3000
+      ENDPOINT: http://test-proxy:3000
+      ENABLE_STORE: "true"
+      REPO_URI: "sqlite:///app/store/db"
+      REPO_KEY: insecure
+      LOG_LEVEL: WARNING
+    networks:
+      - app-network
+
+  test-proxy-setup:
+    image: dbluhm/proxy-mediator-setup:7c54489
+    environment:
+      - WAIT_BEFORE_HOSTS=3
+      - WAIT_HOSTS=test-proxy:3000,test-agent:3010
+      - WAIT_HOSTS_TIMEOUT=300
+      - WAIT_SLEEP_INTERVAL=1
+      - WAIT_HOST_CONNECT_TIMEOUT=10
+      - PROXY=http://test-proxy:3000
+      - AGENT=http://test-agent:8155
+      - MEDIATOR_INVITE=https://mediator4.test.indiciotech.io/?c_i=eyJAdHlwZSI6ICJkaWQ6c292OkJ6Q2JzTlloTXJqSGlxWkRUVUFTSGc7c3BlYy9jb25uZWN0aW9ucy8xLjAvaW52aXRhdGlvbiIsICJAaWQiOiAiNjdlMWIyYjctZDkwZi00YjBhLTk3OTEtNDkzNjVmNmQ4MDNjIiwgImxhYmVsIjogIkluZGljaW8gTWVkaWF0b3IiLCAicmVjaXBpZW50S2V5cyI6IFsiNlY3SHFKR3hEdTJFM2JFbndWc2F6TEJ1MTRBaXNyNndadVQzSHBnUkVlb2MiXSwgInNlcnZpY2VFbmRwb2ludCI6ICJodHRwczovL21lZGlhdG9yNC50ZXN0LmluZGljaW90ZWNoLmlvOjQ0MyJ9
+    depends_on:
+      - test-proxy
+      - test-agent
+    networks:
+      - app-network
+
+#Docker Networks
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  test-proxy-store:

@@ -10,9 +10,6 @@
 [submodule "lab-api"]
 	path = lab-api
 	url = git@github.com:thecardeaproject/cardea-enterprise-health-controller.git
-[submodule "aries-acapy-plugin-toolbox"]
-	path = aries-acapy-plugin-toolbox
-	url = https://github.com/Indicio-tech/aries-acapy-plugin-toolbox
 [submodule "wait-for-it"]
 	path = wait-for-it
 	url = https://github.com/vishnubob/wait-for-it.git
