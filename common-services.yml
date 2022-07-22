@@ -203,7 +203,7 @@ services:
       - WAIT_HOST_CONNECT_TIMEOUT=10
       - PROXY=http://lab-proxy:3000
       - AGENT=http://lab-agent:8150
-      - MEDIATOR_INVITE=https://mediator4.test.indiciotech.io/?c_i=eyJAdHlwZSI6ICJkaWQ6c292OkJ6Q2JzTlloTXJqSGlxWkRUVUFTSGc7c3BlYy9jb25uZWN0aW9ucy8xLjAvaW52aXRhdGlvbiIsICJAaWQiOiAiNjdlMWIyYjctZDkwZi00YjBhLTk3OTEtNDkzNjVmNmQ4MDNjIiwgImxhYmVsIjogIkluZGljaW8gTWVkaWF0b3IiLCAicmVjaXBpZW50S2V5cyI6IFsiNlY3SHFKR3hEdTJFM2JFbndWc2F6TEJ1MTRBaXNyNndadVQzSHBnUkVlb2MiXSwgInNlcnZpY2VFbmRwb2ludCI6ICJodHRwczovL21lZGlhdG9yNC50ZXN0LmluZGljaW90ZWNoLmlvOjQ0MyJ9
+      - MEDIATOR_INVITE=https://public.mediator.indiciotech.io?c_i=eyJAdHlwZSI6ICJkaWQ6c292OkJ6Q2JzTlloTXJqSGlxWkRUVUFTSGc7c3BlYy9jb25uZWN0aW9ucy8xLjAvaW52aXRhdGlvbiIsICJAaWQiOiAiMDVlYzM5NDItYTEyOS00YWE3LWEzZDQtYTJmNDgwYzNjZThhIiwgInNlcnZpY2VFbmRwb2ludCI6ICJodHRwczovL3B1YmxpYy5tZWRpYXRvci5pbmRpY2lvdGVjaC5pbyIsICJyZWNpcGllbnRLZXlzIjogWyJDc2dIQVpxSktuWlRmc3h0MmRIR3JjN3U2M3ljeFlEZ25RdEZMeFhpeDIzYiJdLCAibGFiZWwiOiAiSW5kaWNpbyBQdWJsaWMgTWVkaWF0b3IifQ==
     depends_on:
       - lab-proxy
       - lab-agent
@@ -344,7 +344,7 @@ services:
       - WAIT_HOST_CONNECT_TIMEOUT=10
       - PROXY=http://government-proxy:3000
       - AGENT=http://government-agent:8151
-      - MEDIATOR_INVITE=https://mediator4.test.indiciotech.io/?c_i=eyJAdHlwZSI6ICJkaWQ6c292OkJ6Q2JzTlloTXJqSGlxWkRUVUFTSGc7c3BlYy9jb25uZWN0aW9ucy8xLjAvaW52aXRhdGlvbiIsICJAaWQiOiAiNjdlMWIyYjctZDkwZi00YjBhLTk3OTEtNDkzNjVmNmQ4MDNjIiwgImxhYmVsIjogIkluZGljaW8gTWVkaWF0b3IiLCAicmVjaXBpZW50S2V5cyI6IFsiNlY3SHFKR3hEdTJFM2JFbndWc2F6TEJ1MTRBaXNyNndadVQzSHBnUkVlb2MiXSwgInNlcnZpY2VFbmRwb2ludCI6ICJodHRwczovL21lZGlhdG9yNC50ZXN0LmluZGljaW90ZWNoLmlvOjQ0MyJ9
+      - MEDIATOR_INVITE=https://public.mediator.indiciotech.io?c_i=eyJAdHlwZSI6ICJkaWQ6c292OkJ6Q2JzTlloTXJqSGlxWkRUVUFTSGc7c3BlYy9jb25uZWN0aW9ucy8xLjAvaW52aXRhdGlvbiIsICJAaWQiOiAiMDVlYzM5NDItYTEyOS00YWE3LWEzZDQtYTJmNDgwYzNjZThhIiwgInNlcnZpY2VFbmRwb2ludCI6ICJodHRwczovL3B1YmxpYy5tZWRpYXRvci5pbmRpY2lvdGVjaC5pbyIsICJyZWNpcGllbnRLZXlzIjogWyJDc2dIQVpxSktuWlRmc3h0MmRIR3JjN3U2M3ljeFlEZ25RdEZMeFhpeDIzYiJdLCAibGFiZWwiOiAiSW5kaWNpbyBQdWJsaWMgTWVkaWF0b3IifQ==
     depends_on:
       - government-proxy
       - government-agent
@@ -476,7 +476,7 @@ services:
       - WAIT_HOST_CONNECT_TIMEOUT=10
       - PROXY=http://verifier-proxy:3000
       - AGENT=http://verifier-agent:8154
-      - MEDIATOR_INVITE=https://mediator4.test.indiciotech.io/?c_i=eyJAdHlwZSI6ICJkaWQ6c292OkJ6Q2JzTlloTXJqSGlxWkRUVUFTSGc7c3BlYy9jb25uZWN0aW9ucy8xLjAvaW52aXRhdGlvbiIsICJAaWQiOiAiNjdlMWIyYjctZDkwZi00YjBhLTk3OTEtNDkzNjVmNmQ4MDNjIiwgImxhYmVsIjogIkluZGljaW8gTWVkaWF0b3IiLCAicmVjaXBpZW50S2V5cyI6IFsiNlY3SHFKR3hEdTJFM2JFbndWc2F6TEJ1MTRBaXNyNndadVQzSHBnUkVlb2MiXSwgInNlcnZpY2VFbmRwb2ludCI6ICJodHRwczovL21lZGlhdG9yNC50ZXN0LmluZGljaW90ZWNoLmlvOjQ0MyJ9
+      - MEDIATOR_INVITE=https://public.mediator.indiciotech.io?c_i=eyJAdHlwZSI6ICJkaWQ6c292OkJ6Q2JzTlloTXJqSGlxWkRUVUFTSGc7c3BlYy9jb25uZWN0aW9ucy8xLjAvaW52aXRhdGlvbiIsICJAaWQiOiAiMDVlYzM5NDItYTEyOS00YWE3LWEzZDQtYTJmNDgwYzNjZThhIiwgInNlcnZpY2VFbmRwb2ludCI6ICJodHRwczovL3B1YmxpYy5tZWRpYXRvci5pbmRpY2lvdGVjaC5pbyIsICJyZWNpcGllbnRLZXlzIjogWyJDc2dIQVpxSktuWlRmc3h0MmRIR3JjN3U2M3ljeFlEZ25RdEZMeFhpeDIzYiJdLCAibGFiZWwiOiAiSW5kaWNpbyBQdWJsaWMgTWVkaWF0b3IifQ==
     depends_on:
       - verifier-proxy
       - verifier-agent
