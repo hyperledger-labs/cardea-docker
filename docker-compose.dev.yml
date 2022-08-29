@@ -164,7 +164,6 @@ services:
 
   test-proxy-setup:
     image: dbluhm/proxy-mediator-setup:7c54489
-    restart: unless-stopped
     environment:
       - WAIT_BEFORE_HOSTS=3
       - WAIT_HOSTS=test-proxy:3000,test-agent:3010
