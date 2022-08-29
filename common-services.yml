@@ -181,6 +181,7 @@ services:
 
   lab-proxy:
     image: dbluhm/proxy-mediator:7c54489
+    restart: unless-stopped
     environment:
       PORT: 3000
       ENDPOINT: http://lab-proxy:3000
@@ -195,6 +196,7 @@ services:
 
   lab-proxy-setup:
     image: dbluhm/proxy-mediator-setup:7c54489
+    restart: unless-stopped
     environment:
       - WAIT_BEFORE_HOSTS=3
       - WAIT_HOSTS=lab-proxy:3000,lab-agent:3005
@@ -324,6 +326,7 @@ services:
 
   government-proxy:
     image: dbluhm/proxy-mediator:7c54489
+    restart: unless-stopped
     environment:
       PORT: 3000
       ENDPOINT: http://government-proxy:3000
@@ -336,6 +339,7 @@ services:
 
   government-proxy-setup:
     image: dbluhm/proxy-mediator-setup:7c54489
+    restart: unless-stopped
     environment:
       - WAIT_BEFORE_HOSTS=3
       - WAIT_HOSTS=government-proxy:3000,government-agent:3006
@@ -456,6 +460,7 @@ services:
 
   verifier-proxy:
     image: dbluhm/proxy-mediator:7c54489
+    restart: unless-stopped
     environment:
       PORT: 3000
       ENDPOINT: http://verifier-proxy:3000
@@ -468,6 +473,7 @@ services:
 
   verifier-proxy-setup:
     image: dbluhm/proxy-mediator-setup:7c54489
+    restart: unless-stopped
     environment:
       - WAIT_BEFORE_HOSTS=3
       - WAIT_HOSTS=verifier-proxy:3000,verifier-agent:3009
