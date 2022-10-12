@@ -15,7 +15,7 @@
 	url = https://github.com/vishnubob/wait-for-it.git
 [submodule "secondary-verifier-api"]
 	path = secondary-verifier-api
-	url = git@github.com:thecardeaproject/cardea-enterprise-verifier-controller.git
+	url = git@github.com:thecardeaproject/cardea-secondary-verifier-controller.git
 [submodule "secondary-verifier-ui"]
 	path = secondary-verifier-ui
-	url = git@github.com:thecardeaproject/cardea-enterprise-verifier-ui.git
+	url = git@github.com:thecardeaproject/cardea-secondary-verifier-ui.git
