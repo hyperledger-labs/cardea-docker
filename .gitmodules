@@ -1,21 +1,21 @@
-[submodule "government-ui"]
-	path = government-ui
+[submodule "primary-verifier-ui"]
+	path = primary-verifier-ui
 	url = git@github.com:thecardeaproject/cardea-enterprise-government-ui.git
-[submodule "government-api"]
-	path = government-api
+[submodule "primary-verifier-api"]
+	path = primary-verifier-api
 	url = git@github.com:thecardeaproject/cardea-enterprise-government-controller.git
-[submodule "lab-ui"]
-	path = lab-ui
+[submodule "health-issuer-ui"]
+	path = health-issuer-ui
 	url = git@github.com:thecardeaproject/cardea-enterprise-health-ui.git
-[submodule "lab-api"]
-	path = lab-api
+[submodule "health-issuer-api"]
+	path = health-issuer-api
 	url = git@github.com:thecardeaproject/cardea-enterprise-health-controller.git
 [submodule "wait-for-it"]
 	path = wait-for-it
 	url = https://github.com/vishnubob/wait-for-it.git
-[submodule "verifier-api"]
-	path = verifier-api
+[submodule "secondary-verifier-api"]
+	path = secondary-verifier-api
 	url = git@github.com:thecardeaproject/cardea-enterprise-verifier-controller.git
-[submodule "verifier-ui"]
-	path = verifier-ui
+[submodule "secondary-verifier-ui"]
+	path = secondary-verifier-ui
 	url = git@github.com:thecardeaproject/cardea-enterprise-verifier-ui.git

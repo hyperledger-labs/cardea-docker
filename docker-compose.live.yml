@@ -1,6 +1,5 @@
-version: '3'
+version: "3"
 services:
-
   # Nginx Service
   webserver:
     extends:
@@ -10,17 +9,15 @@ services:
       - "80:80"
       - "443:443"
     environment:
-      DEV_COMMENT: '' # Enable prod settings
-      PROD_COMMENT: '#' # Disable dev settings
-#    volumes: # Remove government service from webserver
-#      - type: tmpfs
-#        target: /etc/nginx/templates/
-#      - ./nginx/conf.d/lab.conf.template:/etc/nginx/templates/lab.conf.template
-#      - ./nginx/conf.d/verifier.conf.template:/etc/nginx/templates/verifier.conf.template
+      DEV_COMMENT: "" # Enable prod settings
+      PROD_COMMENT: "#" # Disable dev settings
+  #    volumes: # Remove government service from webserver
+  #      - type: tmpfs
+  #        target: /etc/nginx/templates/
+  #      - ./nginx/conf.d/lab.conf.template:/etc/nginx/templates/lab.conf.template
+  #      - ./nginx/conf.d/verifier.conf.template:/etc/nginx/templates/verifier.conf.template
 
-
-
- # DB Service
+  # DB Service
   db:
     extends:
       file: common-services.yml
@@ -32,109 +29,107 @@ services:
       POSTGRES_PASSWORD: development
       PGDATA: /var/lib/postgresql/data/pgdata
 
+  #***************************************************************
+  # Lab Services
+  #***************************************************************
 
-#***************************************************************
-# Lab Services
-#***************************************************************
-
-  lab-api:
+  health-issuer-api:
     extends:
       file: common-services.yml
-      service: lab-api
+      service: health-issuer-api
     command: >
       sh -c "npm install && /home/node/wait-for-it/wait-for-it.sh -t 300 ${LAB_API_DB_HOST}:5432 && npm run migrate_up_all && npm start"
 
-  lab-ui:
+  health-issuer-ui:
     extends:
       file: common-services.yml
-      service: lab-ui
-    restart: "no"      
+      service: health-issuer-ui
+    restart: "no"
     command: >
-      sh -c "npm install && npm run build"      
+      sh -c "npm install && npm run build"
 
-  lab-agent:
+  health-issuer-agent:
     extends:
       file: common-services.yml
-      service: lab-agent
+      service: health-issuer-agent
 
-  lab-proxy:
+  health-issuer-proxy:
     extends:
       file: common-services.yml
-      service: lab-proxy
+      service: health-issuer-proxy
 
-  lab-proxy-setup:
+  health-issuer-proxy-setup:
     extends:
       file: common-services.yml
-      service: lab-proxy-setup
+      service: health-issuer-proxy-setup
 
+  #***************************************************************
+  # Government Services
+  #***************************************************************
 
-#***************************************************************
-# Government Services
-#***************************************************************
-
-  government-api:
+  primary-verifier-api:
     extends:
       file: common-services.yml
-      service: government-api
+      service: primary-verifier-api
     command: >
       sh -c "npm install && /home/node/wait-for-it/wait-for-it.sh -t 300 ${GOVERNMENT_API_DB_HOST}:5432 && npm run migrate_up_all && npm run start"
 
-  government-ui:
+  primary-verifier-ui:
     extends:
       file: common-services.yml
-      service: government-ui
-    restart: "no"      
+      service: primary-verifier-ui
+    restart: "no"
     command: >
-      sh -c "npm install && npm run build"      
+      sh -c "npm install && npm run build"
 
-  government-agent:
+  primary-verifier-agent:
     extends:
       file: common-services.yml
-      service: government-agent
+      service: primary-verifier-agent
 
-  government-proxy:
+  primary-verifier-proxy:
     extends:
       file: common-services.yml
-      service: government-proxy
+      service: primary-verifier-proxy
 
-  government-proxy-setup:
+  primary-verifier-proxy-setup:
     extends:
       file: common-services.yml
-      service: government-proxy-setup
+      service: primary-verifier-proxy-setup
 
-#***************************************************************
-# Verifier Services
-#***************************************************************
+  #***************************************************************
+  # Verifier Services
+  #***************************************************************
 
-  verifier-api:
+  secondary-verifier-api:
     extends:
       file: common-services.yml
-      service: verifier-api
+      service: secondary-verifier-api
     command: >
       sh -c "npm install && /home/node/wait-for-it/wait-for-it.sh -t 300 ${VERIFIER_API_DB_HOST}:5432 && npm run migrate_up_all && npm run start"
 
-  verifier-ui:
+  secondary-verifier-ui:
     extends:
       file: common-services.yml
-      service: verifier-ui
-    restart: "no"      
+      service: secondary-verifier-ui
+    restart: "no"
     command: >
-      sh -c "npm install && npm run build"      
+      sh -c "npm install && npm run build"
 
-  verifier-agent:
+  secondary-verifier-agent:
     extends:
       file: common-services.yml
-      service: verifier-agent
+      service: secondary-verifier-agent
 
-  verifier-proxy:
+  secondary-verifier-proxy:
     extends:
       file: common-services.yml
-      service: verifier-proxy
+      service: secondary-verifier-proxy
 
-  verifier-proxy-setup:
+  secondary-verifier-proxy-setup:
     extends:
       file: common-services.yml
-      service: verifier-proxy-setup
+      service: secondary-verifier-proxy-setup
 
 #Docker Networks
 networks:

@@ -31,9 +31,9 @@ We can finally start the docker containers by runnning
 
 The first time you bring up the containers and agent(in a container or separate) or reset them, you must run the following script after the controller api containers have started:
 
-    docker-compose -f docker-compose.dev.yml exec government-api npm run first-time-setup
-    docker-compose -f docker-compose.dev.yml exec lab-api npm run first-time-setup
-    docker-compose -f docker-compose.dev.yml exec verifier-api npm run first-time-setup
+    docker-compose -f docker-compose.dev.yml exec primary-verifier-api npm run first-time-setup
+    docker-compose -f docker-compose.dev.yml exec health-issuer-api npm run first-time-setup
+    docker-compose -f docker-compose.dev.yml exec secondary-verifier-api npm run first-time-setup
 
 To reset all the containers, you can run:
 
@@ -57,7 +57,7 @@ If you need to execute commands in one of the running containers, you can run so
 
 In the previous case we entered the db container and ran the command sh. Tab completion is helpful in seeing the list of containers available.
 
-    $ docker-compose -f docker-compose.dev.yml exec 
+    $ docker-compose -f docker-compose.dev.yml exec
     api        db         ui         webserver
 
 Follow this link to clone and install Aries Toolbox for using test agent.

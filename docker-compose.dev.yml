@@ -1,6 +1,5 @@
-version: '3'
+version: "3"
 services:
-
   # Nginx Service
   webserver:
     extends:
@@ -14,104 +13,102 @@ services:
       - "8080:8080"
       - "4444:4444"
 
-
- # DB Service
+  # DB Service
   db:
     extends:
       file: common-services.yml
       service: db
 
-#***************************************************************
-# Lab Services
-#***************************************************************
+  #***************************************************************
+  # Lab Services
+  #***************************************************************
 
-  lab-api:
+  health-issuer-api:
     extends:
       file: common-services.yml
-      service: lab-api
+      service: health-issuer-api
 
-  lab-ui:
+  health-issuer-ui:
     extends:
       file: common-services.yml
-      service: lab-ui
+      service: health-issuer-ui
 
-  lab-agent:
+  health-issuer-agent:
     extends:
       file: common-services.yml
-      service: lab-agent
+      service: health-issuer-agent
 
-  lab-proxy:
+  health-issuer-proxy:
     extends:
       file: common-services.yml
-      service: lab-proxy
+      service: health-issuer-proxy
 
-  lab-proxy-setup:
+  health-issuer-proxy-setup:
     extends:
       file: common-services.yml
-      service: lab-proxy-setup
+      service: health-issuer-proxy-setup
 
+  #***************************************************************
+  # Government Services
+  #***************************************************************
 
-#***************************************************************
-# Government Services
-#***************************************************************
-
-  government-api:
+  primary-verifier-api:
     extends:
       file: common-services.yml
-      service: government-api
+      service: primary-verifier-api
 
-  government-ui:
+  primary-verifier-ui:
     extends:
       file: common-services.yml
-      service: government-ui
+      service: primary-verifier-ui
 
-  government-agent:
+  primary-verifier-agent:
     extends:
       file: common-services.yml
-      service: government-agent
+      service: primary-verifier-agent
 
-  government-proxy:
+  primary-verifier-proxy:
     extends:
       file: common-services.yml
-      service: government-proxy
+      service: primary-verifier-proxy
 
-  government-proxy-setup:
+  primary-verifier-proxy-setup:
     extends:
       file: common-services.yml
-      service: government-proxy-setup
+      service: primary-verifier-proxy-setup
 
-#***************************************************************
-# Verifier Services
-#***************************************************************
+  #***************************************************************
+  # Verifier Services
+  #***************************************************************
 
-  verifier-api:
+  secondary-verifier-api:
     extends:
       file: common-services.yml
-      service: verifier-api
+      service: secondary-verifier-api
 
-  verifier-ui:
+  secondary-verifier-ui:
     extends:
       file: common-services.yml
-      service: verifier-ui
+      service: secondary-verifier-ui
 
-  verifier-agent:
+  secondary-verifier-agent:
     extends:
       file: common-services.yml
-      service: verifier-agent
+      service: secondary-verifier-agent
 
-  verifier-proxy:
+  secondary-verifier-proxy:
     extends:
       file: common-services.yml
-      service: verifier-proxy
+      service: secondary-verifier-proxy
 
-  verifier-proxy-setup:
+  secondary-verifier-proxy-setup:
     extends:
       file: common-services.yml
-      service: verifier-proxy-setup
+      service: secondary-verifier-proxy-setup
 
-#***************************************************************
-# Test Services
-#***************************************************************
+  #***************************************************************
+  # Test Services
+  #***************************************************************
 
   test-agent:
     image: dbluhm/acapy-toolbox:939bbe6
@@ -125,7 +122,7 @@ services:
     entrypoint: >
       sh -c 'aca-py "$$@"' --
     volumes:
-      - ./test-agent.yml:/home/indy/test-agent.yml 
+      - ./test-agent.yml:/home/indy/test-agent.yml
     command: >
       start --arg-file test-agent.yml
       -it acapy_plugin_toolbox.http_ws 0.0.0.0 3010
