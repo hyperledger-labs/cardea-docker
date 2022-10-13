@@ -10,18 +10,18 @@ services:
     environment:
       DEV_COMMENT: "#" # Disable prod settings
       PROD_COMMENT: "" # Enable dev settings
-      LAB_SSL_DOMAIN_PATH: ${LAB_SSL_DOMAIN_PATH}
-      LAB_SERVER_NAME: ${LAB_SERVER_NAME}
-      LAB_HTTPS_PORT: ${LAB_HTTPS_PORT}
-      LAB_HTTP_PORT: ${LAB_HTTP_PORT}
-      GOVERNMENT_SSL_DOMAIN_PATH: ${GOVERNMENT_SSL_DOMAIN_PATH}
-      GOVERNMENT_SERVER_NAME: ${GOVERNMENT_SERVER_NAME}
-      GOVERNMENT_HTTPS_PORT: ${GOVERNMENT_HTTPS_PORT}
-      GOVERNMENT_HTTP_PORT: ${GOVERNMENT_HTTP_PORT}
-      VERIFIER_SSL_DOMAIN_PATH: ${VERIFIER_SSL_DOMAIN_PATH}
-      VERIFIER_SERVER_NAME: ${VERIFIER_SERVER_NAME}
-      VERIFIER_HTTPS_PORT: ${VERIFIER_HTTPS_PORT}
-      VERIFIER_HTTP_PORT: ${VERIFIER_HTTP_PORT}
+      HEALTH_ISSUER_SSL_DOMAIN_PATH: ${HEALTH_ISSUER_SSL_DOMAIN_PATH}
+      HEALTH_ISSUER_SERVER_NAME: ${HEALTH_ISSUER_SERVER_NAME}
+      HEALTH_ISSUER_HTTPS_PORT: ${HEALTH_ISSUER_HTTPS_PORT}
+      HEALTH_ISSUER_HTTP_PORT: ${HEALTH_ISSUER_HTTP_PORT}
+      PRIMARY_VERIFIER_SSL_DOMAIN_PATH: ${PRIMARY_VERIFIER_SSL_DOMAIN_PATH}
+      PRIMARY_VERIFIER_SERVER_NAME: ${PRIMARY_VERIFIER_SERVER_NAME}
+      PRIMARY_VERIFIER_HTTPS_PORT: ${PRIMARY_VERIFIER_HTTPS_PORT}
+      PRIMARY_VERIFIER_HTTP_PORT: ${PRIMARY_VERIFIER_HTTP_PORT}
+      SECONDARY_VERIFIER_SSL_DOMAIN_PATH: ${SECONDARY_VERIFIER_SSL_DOMAIN_PATH}
+      SECONDARY_VERIFIER_SERVER_NAME: ${SECONDARY_VERIFIER_SERVER_NAME}
+      SECONDARY_VERIFIER_HTTPS_PORT: ${SECONDARY_VERIFIER_HTTPS_PORT}
+      SECONDARY_VERIFIER_HTTP_PORT: ${SECONDARY_VERIFIER_HTTP_PORT}
     restart: unless-stopped
     tty: true
     ports:
@@ -34,7 +34,7 @@ services:
     volumes:
       - ./health-issuer-ui/build:/var/www/health-issuer-ui:consistent
       - ./primary-verifier-ui/build:/var/www/primary-verifier-ui:consistent
-      - ./verifier-ui/build:/var/www/verifier-ui:consistent
+      - ./secondary-verifier-ui/build:/var/www/secondary-verifier-ui:consistent
       - ./nginx/ssl:/etc/nginx/ssl:consistent
       - ./health-issuer-api:/var/www/health-issuer-api:consistent
       - ./primary-verifier-api:/var/www/primary-verifier-api:consistent
@@ -77,19 +77,19 @@ services:
     user: root # we want to run with write permissions for dev, so run as root.
     working_dir: /home/node/app
     environment:
-      - DB_HOST=${LAB_API_DB_HOST}
-      - DB=${LAB_API_DB}
-      - DB_USERNAME=${LAB_API_DB_USERNAME}
-      - DB_PASSWORD=${LAB_API_DB_PASSWORD}
+      - DB_HOST=${HEALTH_ISSUER_API_DB_HOST}
+      - DB=${HEALTH_ISSUER_API_DB}
+      - DB_USERNAME=${HEALTH_ISSUER_API_DB_USERNAME}
+      - DB_PASSWORD=${HEALTH_ISSUER_API_DB_PASSWORD}
       - NODE_ENV=${NODE_ENV}
       - CONTROLLERPORT=3100
-      - AGENTADDRESS=http://lab-agent:8150
-      - WEB_ROOT=${LAB_WEB_ROOT}
+      - AGENTADDRESS=http://health-issuer-agent:8150
+      - WEB_ROOT=${HEALTH_ISSUER_WEB_ROOT}
       - DISABLE_SSL_CHECK=${DISABLE_SSL_CHECK}
-      - JWT_SECRET=${LAB_JWT_SECRET}
-      - SESSION_SECRET=${LAB_SESSION_SECRET}
+      - JWT_SECRET=${HEALTH_ISSUER_JWT_SECRET}
+      - SESSION_SECRET=${HEALTH_ISSUER_SESSION_SECRET}
       - GOVERNANCE_PATH=${GOVERNANCE_PATH}
-      - ENC_KEY=${LAB_ENC_KEY}
+      - ENC_KEY=${HEALTH_ISSUER_ENC_KEY}
       - SCHEMA_LAB_ORDER=${SCHEMA_LAB_ORDER}
       - SCHEMA_LAB_RESULT=${SCHEMA_LAB_RESULT}
       - SCHEMA_VACCINATION=${SCHEMA_VACCINATION}
@@ -101,7 +101,7 @@ services:
     expose:
       - "3100"
     command: >
-      sh -c "npm install && /home/node/wait-for-it/wait-for-it.sh -t 300 ${LAB_API_DB_HOST}:5432 && npm run migrate_up_all && npm run dev"
+      sh -c "npm install && /home/node/wait-for-it/wait-for-it.sh -t 300 ${HEALTH_ISSUER_API_DB_HOST}:5432 && npm run migrate_up_all && npm run dev"
     networks:
       - app-network
     depends_on:
@@ -135,7 +135,7 @@ services:
       ACAPY_WEBHOOK_URL: http://health-issuer-api:3100/api/controller-webhook
       ACAPY_ENDPOINT: http://health-issuer-agent:3005
     entrypoint: >
-      sh -c '/home/indy/wait-for-it/wait-for-it.sh -t 300 ${LAB_AGENT_DB_HOST}:5432 && aca-py "$$@"' --
+      sh -c '/home/indy/wait-for-it/wait-for-it.sh -t 300 ${HEALTH_ISSUER_AGENT_DB_HOST}:5432 && aca-py "$$@"' --
     volumes:
       - ./wait-for-it:/home/indy/wait-for-it
     command: >
@@ -146,12 +146,12 @@ services:
       --plugin acapy_plugin_data_transfer
       --plugin acapy_plugin_qa
       --enable-undelivered-queue
-      --wallet-type indy
-      --wallet-name ${LAB_AGENT_DB}
+      --wallet-type askar
+      --wallet-name ${HEALTH_ISSUER_AGENT_DB}
       --wallet-key default
       --wallet-storage-type postgres_storage
-      --wallet-storage-config '{"url":"${LAB_AGENT_DB_HOST}:5432"}'
-      --wallet-storage-creds '{"account":"${LAB_AGENT_DB_USERNAME}","password":"${LAB_AGENT_DB_PASSWORD}","admin_account":"${LAB_AGENT_ADMIN_DB_USERNAME}","admin_password":"${LAB_AGENT_ADMIN_DB_PASSWORD}"}'
+      --wallet-storage-config '{"url":"${HEALTH_ISSUER_AGENT_DB_HOST}:5432"}'
+      --wallet-storage-creds '{"account":"${HEALTH_ISSUER_AGENT_DB_USERNAME}","password":"${HEALTH_ISSUER_AGENT_DB_PASSWORD}","admin_account":"${HEALTH_ISSUER_AGENT_ADMIN_DB_USERNAME}","admin_password":"${HEALTH_ISSUER_AGENT_ADMIN_DB_PASSWORD}"}'
       --auto-provision
       --auto-accept-requests
       --auto-ping-connection
@@ -165,9 +165,10 @@ services:
       --debug-connections
       --debug-credentials
       --debug-presentations
-      --invite --invite-label "LAB (admin)"
+      --public-invites
+      --invite --invite-label "HEALTH ISSUER (admin)"
       --genesis-url ${GENESIS_URL} 
-      ${LAB_SEED}
+      ${HEALTH_ISSUER_SEED}
     ports:
       - "3005:3005"
       - "8150:8150"
@@ -177,12 +178,12 @@ services:
       - "db"
 
   health-issuer-proxy:
-    image: dbluhm/proxy-mediator:7c54489
+    image: ghcr.io/indicio-tech/proxy-mediator:0.1.1
     environment:
       PORT: 3000
       ENDPOINT: http://health-issuer-proxy:3000
       ENABLE_STORE: "true"
-      REPO_URI: "${LAB_PROXY_DB}"
+      REPO_URI: "${HEALTH_ISSUER_PROXY_DB}"
       REPO_KEY: insecure
       LOG_LEVEL: WARNING
     networks:
@@ -191,7 +192,7 @@ services:
       - "db"
 
   health-issuer-proxy-setup:
-    image: dbluhm/proxy-mediator-setup:7c54489
+    image: ghcr.io/indicio-tech/proxy-mediator-setup:0.1.1
     environment:
       - WAIT_BEFORE_HOSTS=3
       - WAIT_HOSTS=health-issuer-proxy:3000,health-issuer-agent:3005
@@ -200,7 +201,7 @@ services:
       - WAIT_HOST_CONNECT_TIMEOUT=10
       - PROXY=http://health-issuer-proxy:3000
       - AGENT=http://health-issuer-agent:8150
-      - MEDIATOR_INVITE=https://mediator4.test.indiciotech.io/?c_i=eyJAdHlwZSI6ICJkaWQ6c292OkJ6Q2JzTlloTXJqSGlxWkRUVUFTSGc7c3BlYy9jb25uZWN0aW9ucy8xLjAvaW52aXRhdGlvbiIsICJAaWQiOiAiNjdlMWIyYjctZDkwZi00YjBhLTk3OTEtNDkzNjVmNmQ4MDNjIiwgImxhYmVsIjogIkluZGljaW8gTWVkaWF0b3IiLCAicmVjaXBpZW50S2V5cyI6IFsiNlY3SHFKR3hEdTJFM2JFbndWc2F6TEJ1MTRBaXNyNndadVQzSHBnUkVlb2MiXSwgInNlcnZpY2VFbmRwb2ludCI6ICJodHRwczovL21lZGlhdG9yNC50ZXN0LmluZGljaW90ZWNoLmlvOjQ0MyJ9
+      - MEDIATOR_INVITE=https://public.mediator.indiciotech.io?c_i=eyJAdHlwZSI6ICJkaWQ6c292OkJ6Q2JzTlloTXJqSGlxWkRUVUFTSGc7c3BlYy9jb25uZWN0aW9ucy8xLjAvaW52aXRhdGlvbiIsICJAaWQiOiAiMDVlYzM5NDItYTEyOS00YWE3LWEzZDQtYTJmNDgwYzNjZThhIiwgInNlcnZpY2VFbmRwb2ludCI6ICJodHRwczovL3B1YmxpYy5tZWRpYXRvci5pbmRpY2lvdGVjaC5pbyIsICJyZWNpcGllbnRLZXlzIjogWyJDc2dIQVpxSktuWlRmc3h0MmRIR3JjN3U2M3ljeFlEZ25RdEZMeFhpeDIzYiJdLCAibGFiZWwiOiAiSW5kaWNpbyBQdWJsaWMgTWVkaWF0b3IifQ==
     depends_on:
       - health-issuer-proxy
       - health-issuer-agent
@@ -218,34 +219,34 @@ services:
     user: root # we want to run with write permissions for dev, so run as root.
     working_dir: /home/node/app
     environment:
-      - DB_HOST=${GOVERNMENT_API_DB_HOST}
-      - DB=${GOVERNMENT_API_DB}
-      - DB_USERNAME=${GOVERNMENT_API_DB_USERNAME}
-      - DB_PASSWORD=${GOVERNMENT_API_DB_PASSWORD}
+      - DB_HOST=${PRIMARY_VERIFIER_API_DB_HOST}
+      - DB=${PRIMARY_VERIFIER_API_DB}
+      - DB_USERNAME=${PRIMARY_VERIFIER_API_DB_USERNAME}
+      - DB_PASSWORD=${PRIMARY_VERIFIER_API_DB_PASSWORD}
       - NODE_ENV=${NODE_ENV}
       - CONTROLLERPORT=3100
       - AGENTADDRESS=http://primary-verifier-agent:8151
-      - WEB_ROOT=${GOVERNMENT_WEB_ROOT}
+      - WEB_ROOT=${PRIMARY_VERIFIER_WEB_ROOT}
       - DISABLE_SSL_CHECK=${DISABLE_SSL_CHECK}
-      - JWT_SECRET=${GOVERNMENT_JWT_SECRET}
-      - SESSION_SECRET=${GOVERNMENT_SESSION_SECRET}
+      - JWT_SECRET=${PRIMARY_VERIFIER_JWT_SECRET}
+      - SESSION_SECRET=${PRIMARY_VERIFIER_SESSION_SECRET}
       - GOVERNANCE_PATH=${GOVERNANCE_PATH}
-      - ENC_KEY=${GOVERNMENT_ENC_KEY}
+      - ENC_KEY=${PRIMARY_VERIFIER_ENC_KEY}
       - SCHEMA_LAB_ORDER=${SCHEMA_LAB_ORDER}
       - SCHEMA_LAB_RESULT=${SCHEMA_LAB_RESULT}
       - SCHEMA_VACCINATION=${SCHEMA_VACCINATION}
       - SCHEMA_VACCINE_EXEMPTION=${SCHEMA_VACCINE_EXEMPTION}
       - SCHEMA_MEDICAL_RELEASE=${SCHEMA_MEDICAL_RELEASE}
       - SCHEMA_TRUSTED_TRAVELER=${SCHEMA_TRUSTED_TRAVELER}
-      - GOVERNMENT_API=${GOVERNMENT_API}
-      - APIKEY=${GOVERNMENT_APIKEY}
+      - PRIMARY_VERIFIER_API=${PRIMARY_VERIFIER_API}
+      - APIKEY=${PRIMARY_VERIFIER_APIKEY}
     volumes:
       - ./primary-verifier-api:/home/node/app:consistent
       - ./wait-for-it:/home/node/wait-for-it
     expose:
       - "3100"
     command: >
-      sh -c "npm install && /home/node/wait-for-it/wait-for-it.sh -t 300 ${GOVERNMENT_API_DB_HOST}:5432 && npm run migrate_up_all && npm run dev"
+      sh -c "npm install && /home/node/wait-for-it/wait-for-it.sh -t 300 ${PRIMARY_VERIFIER_API_DB_HOST}:5432 && npm run migrate_up_all && npm run dev"
     networks:
       - app-network
     depends_on:
@@ -279,7 +280,7 @@ services:
       ACAPY_WEBHOOK_URL: http://primary-verifier-api:3100/api/controller-webhook
       ACAPY_ENDPOINT: http://primary-verifier-agent:3006
     entrypoint: >
-      sh -c '/home/indy/wait-for-it/wait-for-it.sh -t 300 ${GOVERNMENT_AGENT_DB_HOST}:5432 && aca-py "$$@"' --
+      sh -c '/home/indy/wait-for-it/wait-for-it.sh -t 300 ${PRIMARY_VERIFIER_AGENT_DB_HOST}:5432 && aca-py "$$@"' --
     volumes:
       - ./wait-for-it:/home/indy/wait-for-it
     command: >
@@ -290,12 +291,12 @@ services:
       --plugin acapy_plugin_data_transfer
       --plugin acapy_plugin_qa
       --enable-undelivered-queue
-      --wallet-type indy
-      --wallet-name ${GOVERNMENT_AGENT_DB}
+      --wallet-type askar
+      --wallet-name ${PRIMARY_VERIFIER_AGENT_DB}
       --wallet-key default
       --wallet-storage-type postgres_storage
-      --wallet-storage-config '{"url":"${GOVERNMENT_AGENT_DB_HOST}:5432"}'
-      --wallet-storage-creds '{"account":"${GOVERNMENT_AGENT_DB_USERNAME}","password":"${GOVERNMENT_AGENT_DB_PASSWORD}","admin_account":"${GOVERNMENT_AGENT_ADMIN_DB_USERNAME}","admin_password":"${GOVERNMENT_AGENT_ADMIN_DB_PASSWORD}"}'
+      --wallet-storage-config '{"url":"${PRIMARY_VERIFIER_AGENT_DB_HOST}:5432"}'
+      --wallet-storage-creds '{"account":"${PRIMARY_VERIFIER_AGENT_DB_USERNAME}","password":"${PRIMARY_VERIFIER_AGENT_DB_PASSWORD}","admin_account":"${PRIMARY_VERIFIER_AGENT_ADMIN_DB_USERNAME}","admin_password":"${PRIMARY_VERIFIER_AGENT_ADMIN_DB_PASSWORD}"}'
       --auto-provision
       --auto-accept-requests
       --auto-ping-connection
@@ -309,9 +310,10 @@ services:
       --debug-connections
       --debug-credentials
       --debug-presentations
-      --invite --invite-label "GOVERNMENT (admin)"
+      --public-invites
+      --invite --invite-label "PRIMARY VERIFIER (admin)"
       --genesis-url ${GENESIS_URL}
-      ${GOVERNMENT_SEED}
+      ${PRIMARY_VERIFIER_SEED}
     ports:
       - "3006:3006"
       - "8151:8151"
@@ -319,19 +321,19 @@ services:
       - app-network
 
   primary-verifier-proxy:
-    image: dbluhm/proxy-mediator:7c54489
+    image: ghcr.io/indicio-tech/proxy-mediator:0.1.1
     environment:
       PORT: 3000
       ENDPOINT: http://primary-verifier-proxy:3000
       ENABLE_STORE: "true"
-      REPO_URI: "${GOVERNMENT_PROXY_DB}"
+      REPO_URI: "${PRIMARY_VERIFIER_PROXY_DB}"
       REPO_KEY: insecure
       LOG_LEVEL: WARNING
     networks:
       - app-network
 
   primary-verifier-proxy-setup:
-    image: dbluhm/proxy-mediator-setup:7c54489
+    image: ghcr.io/indicio-tech/proxy-mediator-setup:0.1.1
     environment:
       - WAIT_BEFORE_HOSTS=3
       - WAIT_HOSTS=primary-verifier-proxy:3000,primary-verifier-agent:3006
@@ -340,7 +342,7 @@ services:
       - WAIT_HOST_CONNECT_TIMEOUT=10
       - PROXY=http://primary-verifier-proxy:3000
       - AGENT=http://primary-verifier-agent:8151
-      - MEDIATOR_INVITE=https://mediator4.test.indiciotech.io/?c_i=eyJAdHlwZSI6ICJkaWQ6c292OkJ6Q2JzTlloTXJqSGlxWkRUVUFTSGc7c3BlYy9jb25uZWN0aW9ucy8xLjAvaW52aXRhdGlvbiIsICJAaWQiOiAiNjdlMWIyYjctZDkwZi00YjBhLTk3OTEtNDkzNjVmNmQ4MDNjIiwgImxhYmVsIjogIkluZGljaW8gTWVkaWF0b3IiLCAicmVjaXBpZW50S2V5cyI6IFsiNlY3SHFKR3hEdTJFM2JFbndWc2F6TEJ1MTRBaXNyNndadVQzSHBnUkVlb2MiXSwgInNlcnZpY2VFbmRwb2ludCI6ICJodHRwczovL21lZGlhdG9yNC50ZXN0LmluZGljaW90ZWNoLmlvOjQ0MyJ9
+      - MEDIATOR_INVITE=https://public.mediator.indiciotech.io?c_i=eyJAdHlwZSI6ICJkaWQ6c292OkJ6Q2JzTlloTXJqSGlxWkRUVUFTSGc7c3BlYy9jb25uZWN0aW9ucy8xLjAvaW52aXRhdGlvbiIsICJAaWQiOiAiMDVlYzM5NDItYTEyOS00YWE3LWEzZDQtYTJmNDgwYzNjZThhIiwgInNlcnZpY2VFbmRwb2ludCI6ICJodHRwczovL3B1YmxpYy5tZWRpYXRvci5pbmRpY2lvdGVjaC5pbyIsICJyZWNpcGllbnRLZXlzIjogWyJDc2dIQVpxSktuWlRmc3h0MmRIR3JjN3U2M3ljeFlEZ25RdEZMeFhpeDIzYiJdLCAibGFiZWwiOiAiSW5kaWNpbyBQdWJsaWMgTWVkaWF0b3IifQ==
     depends_on:
       - primary-verifier-proxy
       - primary-verifier-agent
@@ -358,19 +360,19 @@ services:
     user: root # we want to run with write permissions for dev, so run as root.
     working_dir: /home/node/app
     environment:
-      - DB_HOST=${VERIFIER_API_DB_HOST}
-      - DB=${VERIFIER_API_DB}
-      - DB_USERNAME=${VERIFIER_API_DB_USERNAME}
-      - DB_PASSWORD=${VERIFIER_API_DB_PASSWORD}
+      - DB_HOST=${SECONDARY_VERIFIER_API_DB_HOST}
+      - DB=${SECONDARY_VERIFIER_API_DB}
+      - DB_USERNAME=${SECONDARY_VERIFIER_API_DB_USERNAME}
+      - DB_PASSWORD=${SECONDARY_VERIFIER_API_DB_PASSWORD}
       - NODE_ENV=${NODE_ENV}
       - CONTROLLERPORT=3100
-      - AGENTADDRESS=http://verifier-agent:8154
+      - AGENTADDRESS=http://secondary-verifier-agent:8154
       - GOVERNANCE_PATH=${GOVERNANCE_PATH}
-      - ENC_KEY=${VERIFIER_ENC_KEY}
-      - WEB_ROOT=${VERIFIER_WEB_ROOT}
+      - ENC_KEY=${SECONDARY_VERIFIER_ENC_KEY}
+      - WEB_ROOT=${SECONDARY_VERIFIER_WEB_ROOT}
       - DISABLE_SSL_CHECK=${DISABLE_SSL_CHECK}
-      - JWT_SECRET=${VERIFIER_JWT_SECRET}
-      - SESSION_SECRET=${VERIFIER_SESSION_SECRET}
+      - JWT_SECRET=${SECONDARY_VERIFIER_JWT_SECRET}
+      - SESSION_SECRET=${SECONDARY_VERIFIER_SESSION_SECRET}
       - SCHEMA_TRUSTED_TRAVELER=${SCHEMA_TRUSTED_TRAVELER}
     volumes:
       - ./secondary-verifier-api:/home/node/app:consistent
@@ -378,7 +380,7 @@ services:
     expose:
       - "3100"
     command: >
-      sh -c "npm install && /home/node/wait-for-it/wait-for-it.sh -t 300 ${VERIFIER_API_DB_HOST}:5432 && npm run migrate_up_all && npm run dev"
+      sh -c "npm install && /home/node/wait-for-it/wait-for-it.sh -t 300 ${SECONDARY_VERIFIER_API_DB_HOST}:5432 && npm run migrate_up_all && npm run dev"
     networks:
       - app-network
     depends_on:
@@ -412,7 +414,7 @@ services:
       ACAPY_WEBHOOK_URL: http://secondary-verifier-api:3100/api/controller-webhook
       ACAPY_ENDPOINT: http://secondary-verifier-agent:3009
     entrypoint: >
-      sh -c '/home/indy/wait-for-it/wait-for-it.sh -t 300 ${VERIFIER_AGENT_DB_HOST}:5432 && aca-py "$$@"' --
+      sh -c '/home/indy/wait-for-it/wait-for-it.sh -t 300 ${SECONDARY_VERIFIER_AGENT_DB_HOST}:5432 && aca-py "$$@"' --
     volumes:
       - ./wait-for-it:/home/indy/wait-for-it
     command: >
@@ -422,12 +424,12 @@ services:
       --label 'Secondary Verifier'
       --plugin acapy_plugin_qa
       --enable-undelivered-queue
-      --wallet-type indy
-      --wallet-name ${VERIFIER_AGENT_DB}
+      --wallet-type askar
+      --wallet-name ${SECONDARY_VERIFIER_AGENT_DB}
       --wallet-key default
       --wallet-storage-type postgres_storage
-      --wallet-storage-config '{"url":"${VERIFIER_AGENT_DB_HOST}:5432"}'
-      --wallet-storage-creds '{"account":"${VERIFIER_AGENT_DB_USERNAME}","password":"${VERIFIER_AGENT_DB_PASSWORD}","admin_account":"${VERIFIER_AGENT_ADMIN_DB_USERNAME}","admin_password":"${VERIFIER_AGENT_ADMIN_DB_PASSWORD}"}'
+      --wallet-storage-config '{"url":"${SECONDARY_VERIFIER_AGENT_DB_HOST}:5432"}'
+      --wallet-storage-creds '{"account":"${SECONDARY_VERIFIER_AGENT_DB_USERNAME}","password":"${SECONDARY_VERIFIER_AGENT_DB_PASSWORD}","admin_account":"${SECONDARY_VERIFIER_AGENT_ADMIN_DB_USERNAME}","admin_password":"${SECONDARY_VERIFIER_AGENT_ADMIN_DB_PASSWORD}"}'
       --auto-provision
       --auto-accept-requests
       --auto-ping-connection
@@ -441,9 +443,10 @@ services:
       --debug-connections
       --debug-credentials
       --debug-presentations
-      --invite --invite-label "VERIFIER (admin)"
+      --public-invites
+      --invite --invite-label "SECONDARY VERIFIER (admin)"
       --genesis-url ${GENESIS_URL} 
-      ${VERIFIER_SEED}
+      ${SECONDARY_VERIFIER_SEED}
     ports:
       - 3009:3009
       - 8154:8154
@@ -451,19 +454,19 @@ services:
       - app-network
 
   secondary-verifier-proxy:
-    image: dbluhm/proxy-mediator:7c54489
+    image: ghcr.io/indicio-tech/proxy-mediator:0.1.1
     environment:
       PORT: 3000
       ENDPOINT: http://secondary-verifier-proxy:3000
       ENABLE_STORE: "true"
-      REPO_URI: "${VERIFIER_PROXY_DB}"
+      REPO_URI: "${SECONDARY_VERIFIER_PROXY_DB}"
       REPO_KEY: insecure
       LOG_LEVEL: WARNING
     networks:
       - app-network
 
   secondary-verifier-proxy-setup:
-    image: dbluhm/proxy-mediator-setup:7c54489
+    image: ghcr.io/indicio-tech/proxy-mediator-setup:0.1.1
     environment:
       - WAIT_BEFORE_HOSTS=3
       - WAIT_HOSTS=secondary-verifier-proxy:3000,secondary-verifier-agent:3009
@@ -472,7 +475,7 @@ services:
       - WAIT_HOST_CONNECT_TIMEOUT=10
       - PROXY=http://secondary-verifier-proxy:3000
       - AGENT=http://secondary-verifier-agent:8154
-      - MEDIATOR_INVITE=https://mediator4.test.indiciotech.io/?c_i=eyJAdHlwZSI6ICJkaWQ6c292OkJ6Q2JzTlloTXJqSGlxWkRUVUFTSGc7c3BlYy9jb25uZWN0aW9ucy8xLjAvaW52aXRhdGlvbiIsICJAaWQiOiAiNjdlMWIyYjctZDkwZi00YjBhLTk3OTEtNDkzNjVmNmQ4MDNjIiwgImxhYmVsIjogIkluZGljaW8gTWVkaWF0b3IiLCAicmVjaXBpZW50S2V5cyI6IFsiNlY3SHFKR3hEdTJFM2JFbndWc2F6TEJ1MTRBaXNyNndadVQzSHBnUkVlb2MiXSwgInNlcnZpY2VFbmRwb2ludCI6ICJodHRwczovL21lZGlhdG9yNC50ZXN0LmluZGljaW90ZWNoLmlvOjQ0MyJ9
+      - MEDIATOR_INVITE=https://public.mediator.indiciotech.io?c_i=eyJAdHlwZSI6ICJkaWQ6c292OkJ6Q2JzTlloTXJqSGlxWkRUVUFTSGc7c3BlYy9jb25uZWN0aW9ucy8xLjAvaW52aXRhdGlvbiIsICJAaWQiOiAiMDVlYzM5NDItYTEyOS00YWE3LWEzZDQtYTJmNDgwYzNjZThhIiwgInNlcnZpY2VFbmRwb2ludCI6ICJodHRwczovL3B1YmxpYy5tZWRpYXRvci5pbmRpY2lvdGVjaC5pbyIsICJyZWNpcGllbnRLZXlzIjogWyJDc2dIQVpxSktuWlRmc3h0MmRIR3JjN3U2M3ljeFlEZ25RdEZMeFhpeDIzYiJdLCAibGFiZWwiOiAiSW5kaWNpbyBQdWJsaWMgTWVkaWF0b3IifQ==
     depends_on:
       - secondary-verifier-proxy
       - secondary-verifier-agent

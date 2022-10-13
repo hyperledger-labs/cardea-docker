@@ -38,7 +38,7 @@ services:
       file: common-services.yml
       service: health-issuer-api
     command: >
-      sh -c "npm install && /home/node/wait-for-it/wait-for-it.sh -t 300 ${LAB_API_DB_HOST}:5432 && npm run migrate_up_all && npm start"
+      sh -c "npm install && /home/node/wait-for-it/wait-for-it.sh -t 300 ${HEALTH_ISSUER_API_DB_HOST}:5432 && npm run migrate_up_all && npm start"
 
   health-issuer-ui:
     extends:
@@ -72,7 +72,7 @@ services:
       file: common-services.yml
       service: primary-verifier-api
     command: >
-      sh -c "npm install && /home/node/wait-for-it/wait-for-it.sh -t 300 ${GOVERNMENT_API_DB_HOST}:5432 && npm run migrate_up_all && npm run start"
+      sh -c "npm install && /home/node/wait-for-it/wait-for-it.sh -t 300 ${PRIMARY_VERIFIER_API_DB_HOST}:5432 && npm run migrate_up_all && npm run start"
 
   primary-verifier-ui:
     extends:
@@ -106,7 +106,7 @@ services:
       file: common-services.yml
       service: secondary-verifier-api
     command: >
-      sh -c "npm install && /home/node/wait-for-it/wait-for-it.sh -t 300 ${VERIFIER_API_DB_HOST}:5432 && npm run migrate_up_all && npm run start"
+      sh -c "npm install && /home/node/wait-for-it/wait-for-it.sh -t 300 ${SECONDARY_VERIFIER_API_DB_HOST}:5432 && npm run migrate_up_all && npm run start"
 
   secondary-verifier-ui:
     extends:

@@ -19,17 +19,17 @@
 # Default server configuration
 #
 server {
-	server_name ${VERIFIER_SERVER_NAME};
+	server_name ${SECONDARY_VERIFIER_SERVER_NAME};
 
 	client_max_body_size 10M;
 
-	listen ${VERIFIER_HTTP_PORT};
-	listen [::]:${VERIFIER_HTTP_PORT};
+	listen ${SECONDARY_VERIFIER_HTTP_PORT};
+	listen [::]:${SECONDARY_VERIFIER_HTTP_PORT};
 
 	root /var/www/secondary-verifier-ui;
 
 	location / {
-		return 301 https://$host:${VERIFIER_HTTPS_PORT}$request_uri;
+		return 301 https://$host:${SECONDARY_VERIFIER_HTTPS_PORT}$request_uri;
 	}
 
 	location /api/governance-framework {
@@ -53,19 +53,19 @@ server {
 }
 
 server {
-	server_name ${VERIFIER_SERVER_NAME};
+	server_name ${SECONDARY_VERIFIER_SERVER_NAME};
 
 	client_max_body_size 10M;
 
 	# SSL configuration
 	#
-	listen ${VERIFIER_HTTPS_PORT} ssl;
-	listen [::]:${VERIFIER_HTTPS_PORT} ssl;
+	listen ${SECONDARY_VERIFIER_HTTPS_PORT} ssl;
+	listen [::]:${SECONDARY_VERIFIER_HTTPS_PORT} ssl;
 
 	ssl_protocols       TLSv1.2;
 	ssl_ciphers "EECDH+ECDSA+AESGCM EECDH+aRSA+AESGCM EECDH+ECDSA+SHA384 EECDH+ECDSA+SHA256 EECDH+aRSA+SHA384 EECDH+aRSA+SHA256 EECDH+aRSA+RC4 EECDH EDH+aRSA HIGH !RC4 !aNULL !eNULL !LOW !3DES !MD5 !EXP !PSK !SRP !DSS";
-	ssl_certificate /etc/nginx/ssl/${VERIFIER_SSL_DOMAIN_PATH}/fullchain.pem;
-	ssl_certificate_key /etc/nginx/ssl/${VERIFIER_SSL_DOMAIN_PATH}/privkey.pem;
+	ssl_certificate /etc/nginx/ssl/${SECONDARY_VERIFIER_SSL_DOMAIN_PATH}/fullchain.pem;
+	ssl_certificate_key /etc/nginx/ssl/${SECONDARY_VERIFIER_SSL_DOMAIN_PATH}/privkey.pem;
 	#
 	# Note: You should disable gzip for SSL traffic.
 	# See: https://bugs.debian.org/773332

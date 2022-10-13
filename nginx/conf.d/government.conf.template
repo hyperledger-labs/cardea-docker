@@ -19,17 +19,17 @@
 # Default server configuration
 #
 server {
-	server_name ${GOVERNMENT_SERVER_NAME};
+	server_name ${PRIMARY_VERIFIER_SERVER_NAME};
 
 	client_max_body_size 10M;
 
-	listen ${GOVERNMENT_HTTP_PORT};
-	listen [::]:${GOVERNMENT_HTTP_PORT};
+	listen ${PRIMARY_VERIFIER_HTTP_PORT};
+	listen [::]:${PRIMARY_VERIFIER_HTTP_PORT};
 
 	root /var/www/primary-verifier-ui;
 
 	location / {
-		return 301 https://$host:${GOVERNMENT_HTTPS_PORT}$request_uri;
+		return 301 https://$host:${PRIMARY_VERIFIER_HTTPS_PORT}$request_uri;
 	}
 
 	location /api/governance-framework {
@@ -53,19 +53,19 @@ server {
 }
 
 server {
-	server_name ${GOVERNMENT_SERVER_NAME};
+	server_name ${PRIMARY_VERIFIER_SERVER_NAME};
 
 	client_max_body_size 10M;
 
 	# SSL configuration
 	#
-	listen ${GOVERNMENT_HTTPS_PORT} ssl;
-	listen [::]:${GOVERNMENT_HTTPS_PORT} ssl;
+	listen ${PRIMARY_VERIFIER_HTTPS_PORT} ssl;
+	listen [::]:${PRIMARY_VERIFIER_HTTPS_PORT} ssl;
 
 	ssl_protocols       TLSv1.2;
 	ssl_ciphers "EECDH+ECDSA+AESGCM EECDH+aRSA+AESGCM EECDH+ECDSA+SHA384 EECDH+ECDSA+SHA256 EECDH+aRSA+SHA384 EECDH+aRSA+SHA256 EECDH+aRSA+RC4 EECDH EDH+aRSA HIGH !RC4 !aNULL !eNULL !LOW !3DES !MD5 !EXP !PSK !SRP !DSS";
-	ssl_certificate /etc/nginx/ssl/${GOVERNMENT_SSL_DOMAIN_PATH}/fullchain.pem;
-	ssl_certificate_key /etc/nginx/ssl/${GOVERNMENT_SSL_DOMAIN_PATH}/privkey.pem;
+	ssl_certificate /etc/nginx/ssl/${PRIMARY_VERIFIER_SSL_DOMAIN_PATH}/fullchain.pem;
+	ssl_certificate_key /etc/nginx/ssl/${PRIMARY_VERIFIER_SSL_DOMAIN_PATH}/privkey.pem;
 	#
 	# Note: You should disable gzip for SSL traffic.
 	# See: https://bugs.debian.org/773332

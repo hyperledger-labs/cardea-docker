@@ -19,17 +19,17 @@
 # Default server configuration
 #
 server {
-	server_name ${LAB_SERVER_NAME};
+	server_name ${HEALTH_ISSUER_SERVER_NAME};
 
 	client_max_body_size 10M;
 
-	listen ${LAB_HTTP_PORT};
-	listen [::]:${LAB_HTTP_PORT};
+	listen ${HEALTH_ISSUER_HTTP_PORT};
+	listen [::]:${HEALTH_ISSUER_HTTP_PORT};
 
 	root /var/www/health-issuer-ui;
 
 	location / {
-		return 301 https://$host:${LAB_HTTPS_PORT}$request_uri;
+		return 301 https://$host:${HEALTH_ISSUER_HTTPS_PORT}$request_uri;
 	}
 
 	location /api/governance-framework {
@@ -62,19 +62,19 @@ server {
 }
 
 server {
-	server_name ${LAB_SERVER_NAME};
+	server_name ${HEALTH_ISSUER_SERVER_NAME};
 
 	client_max_body_size 10M;
 
 	# SSL configuration
 	#
-	listen ${LAB_HTTPS_PORT} ssl default_server;
-	listen [::]:${LAB_HTTPS_PORT} ssl default_server;
+	listen ${HEALTH_ISSUER_HTTPS_PORT} ssl default_server;
+	listen [::]:${HEALTH_ISSUER_HTTPS_PORT} ssl default_server;
 
 	ssl_protocols       TLSv1.2;
 	ssl_ciphers "EECDH+ECDSA+AESGCM EECDH+aRSA+AESGCM EECDH+ECDSA+SHA384 EECDH+ECDSA+SHA256 EECDH+aRSA+SHA384 EECDH+aRSA+SHA256 EECDH+aRSA+RC4 EECDH EDH+aRSA HIGH !RC4 !aNULL !eNULL !LOW !3DES !MD5 !EXP !PSK !SRP !DSS";
-	ssl_certificate /etc/nginx/ssl/${LAB_SSL_DOMAIN_PATH}/fullchain.pem;
-	ssl_certificate_key /etc/nginx/ssl/${LAB_SSL_DOMAIN_PATH}/privkey.pem;
+	ssl_certificate /etc/nginx/ssl/${HEALTH_ISSUER_SSL_DOMAIN_PATH}/fullchain.pem;
+	ssl_certificate_key /etc/nginx/ssl/${HEALTH_ISSUER_SSL_DOMAIN_PATH}/privkey.pem;
 	#
 	# Note: You should disable gzip for SSL traffic.
 	# See: https://bugs.debian.org/773332
