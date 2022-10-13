@@ -19,23 +19,23 @@
 # Default server configuration
 #
 server {
-	server_name ${LAB_SERVER_NAME};
+	server_name ${HEALTH_ISSUER_SERVER_NAME};
 
 	client_max_body_size 10M;
 
-	listen ${LAB_HTTP_PORT};
-	listen [::]:${LAB_HTTP_PORT};
+	listen ${HEALTH_ISSUER_HTTP_PORT};
+	listen [::]:${HEALTH_ISSUER_HTTP_PORT};
 
-	root /var/www/lab-ui;
+	root /var/www/health-issuer-ui;
 
 	location / {
-		return 301 https://$host:${LAB_HTTPS_PORT}$request_uri;
+		return 301 https://$host:${HEALTH_ISSUER_HTTPS_PORT}$request_uri;
 	}
 
 	location /api/governance-framework {
 		allow all;
 
-		alias /var/www/lab-api/web;
+		alias /var/www/health-issuer-api/web;
 		# First attempt to serve request as file, then
 		# as directory, then fall back to displaying a 404.
 		try_files $uri @api;
@@ -44,7 +44,7 @@ server {
 	location /api/governance-framework-atomic-actions {
 		allow all;
 
-		alias /var/www/lab-api/web;
+		alias /var/www/health-issuer-api/web;
 		# First attempt to serve request as file, then
 		# as directory, then fall back to displaying a 404.
 		try_files $uri @api;
@@ -56,25 +56,25 @@ server {
 		proxy_http_version 1.1;
 		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 		proxy_set_header Host $host;
-		proxy_pass http://lab-api:3100;
+		proxy_pass http://health-issuer-api:3100;
 	}
 
 }
 
 server {
-	server_name ${LAB_SERVER_NAME};
+	server_name ${HEALTH_ISSUER_SERVER_NAME};
 
 	client_max_body_size 10M;
 
 	# SSL configuration
 	#
-	listen ${LAB_HTTPS_PORT} ssl default_server;
-	listen [::]:${LAB_HTTPS_PORT} ssl default_server;
+	listen ${HEALTH_ISSUER_HTTPS_PORT} ssl default_server;
+	listen [::]:${HEALTH_ISSUER_HTTPS_PORT} ssl default_server;
 
 	ssl_protocols       TLSv1.2;
 	ssl_ciphers "EECDH+ECDSA+AESGCM EECDH+aRSA+AESGCM EECDH+ECDSA+SHA384 EECDH+ECDSA+SHA256 EECDH+aRSA+SHA384 EECDH+aRSA+SHA256 EECDH+aRSA+RC4 EECDH EDH+aRSA HIGH !RC4 !aNULL !eNULL !LOW !3DES !MD5 !EXP !PSK !SRP !DSS";
-	ssl_certificate /etc/nginx/ssl/${LAB_SSL_DOMAIN_PATH}/fullchain.pem;
-	ssl_certificate_key /etc/nginx/ssl/${LAB_SSL_DOMAIN_PATH}/privkey.pem;
+	ssl_certificate /etc/nginx/ssl/${HEALTH_ISSUER_SSL_DOMAIN_PATH}/fullchain.pem;
+	ssl_certificate_key /etc/nginx/ssl/${HEALTH_ISSUER_SSL_DOMAIN_PATH}/privkey.pem;
 	#
 	# Note: You should disable gzip for SSL traffic.
 	# See: https://bugs.debian.org/773332
@@ -87,7 +87,7 @@ server {
 	#
 	# include snippets/snakeoil.conf;
 
-	root /var/www/lab-ui;
+	root /var/www/health-issuer-ui;
 
 	charset UTF-8;
 
@@ -104,7 +104,7 @@ server {
 		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 		proxy_set_header Host $host;
 		proxy_set_header X-Forwarded-Proto $scheme;
-		proxy_pass http://lab-api:3100;
+		proxy_pass http://health-issuer-api:3100;
 		proxy_read_timeout 60m;
 		proxy_send_timeout 60m;
 	}
@@ -112,7 +112,7 @@ server {
 	location /api {
 		allow all;
 
-		alias /var/www/lab-api/web;
+		alias /var/www/health-issuer-api/web;
 		# First attempt to serve request as file, then
 		# as directory, then fall back to displaying a 404.
 		try_files $uri @api;
@@ -120,7 +120,7 @@ server {
 
 	location /favicon.ico {
 		allow all;
-		root /var/www/lab-api/web;
+		root /var/www/health-issuer-api/web;
 		# First attempt to serve request as file, then
 		# as directory, then fall back to displaying a 404.
 		try_files $uri @api;
@@ -128,7 +128,7 @@ server {
 
 	location /manifest.json {
 		allow all;
-		root /var/www/lab-api/web;
+		root /var/www/health-issuer-api/web;
 		# First attempt to serve request as file, then
 		# as directory, then fall back to displaying a 404.
 		try_files $uri @api;
@@ -136,7 +136,7 @@ server {
 
 	location /logo192.png {
 		allow all;
-		root /var/www/lab-api/web;
+		root /var/www/health-issuer-api/web;
 		# First attempt to serve request as file, then
 		# as directory, then fall back to displaying a 404.
 		try_files $uri @api;
@@ -144,7 +144,7 @@ server {
 
 	location /logo512.png {
 		allow all;
-		root /var/www/lab-api/web;
+		root /var/www/health-issuer-api/web;
 		# First attempt to serve request as file, then
 		# as directory, then fall back to displaying a 404.
 		try_files $uri @api;
@@ -157,7 +157,7 @@ server {
 		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 		proxy_set_header Host $host;
 		proxy_set_header X-Forwarded-Proto $scheme;
-		proxy_pass http://lab-api:3100;
+		proxy_pass http://health-issuer-api:3100;
 	}
 
 	# UI PATHS
@@ -170,7 +170,7 @@ ${DEV_COMMENT}		 try_files $uri $uri/ /index.html =404;
 ${PROD_COMMENT}		proxy_http_version 1.1;
 ${PROD_COMMENT}		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 ${PROD_COMMENT}		proxy_set_header Host $host;
-${PROD_COMMENT}		proxy_pass http://lab-ui:3000;
+${PROD_COMMENT}		proxy_pass http://health-issuer-ui:3000;
 	}
 
 ${PROD_COMMENT}	location /sockjs-node {
@@ -181,7 +181,7 @@ ${PROD_COMMENT}		proxy_set_header Connection "upgrade";
 ${PROD_COMMENT}		proxy_http_version 1.1;
 ${PROD_COMMENT}		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 ${PROD_COMMENT}		proxy_set_header Host $host;
-${PROD_COMMENT}		proxy_pass http://lab-ui:3000;
+${PROD_COMMENT}		proxy_pass http://health-issuer-ui:3000;
 ${PROD_COMMENT}	}
 
 	# Disable .htaccess and other hidden files

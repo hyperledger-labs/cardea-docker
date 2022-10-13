@@ -1,6 +1,5 @@
-version: '3'
+version: "3"
 services:
-
   # Nginx Service
   webserver:
     extends:
@@ -14,107 +13,105 @@ services:
       - "8080:8080"
       - "4444:4444"
 
-
- # DB Service
+  # DB Service
   db:
     extends:
       file: common-services.yml
       service: db
 
-#***************************************************************
-# Lab Services
-#***************************************************************
+  #***************************************************************
+  # Lab Services
+  #***************************************************************
 
-  lab-api:
+  health-issuer-api:
     extends:
       file: common-services.yml
-      service: lab-api
+      service: health-issuer-api
 
-  lab-ui:
+  health-issuer-ui:
     extends:
       file: common-services.yml
-      service: lab-ui
+      service: health-issuer-ui
 
-  lab-agent:
+  health-issuer-agent:
     extends:
       file: common-services.yml
-      service: lab-agent
+      service: health-issuer-agent
 
-  lab-proxy:
+  health-issuer-proxy:
     extends:
       file: common-services.yml
-      service: lab-proxy
+      service: health-issuer-proxy
 
-  lab-proxy-setup:
+  health-issuer-proxy-setup:
     extends:
       file: common-services.yml
-      service: lab-proxy-setup
+      service: health-issuer-proxy-setup
 
+  #***************************************************************
+  # Government Services
+  #***************************************************************
 
-#***************************************************************
-# Government Services
-#***************************************************************
-
-  government-api:
+  primary-verifier-api:
     extends:
       file: common-services.yml
-      service: government-api
+      service: primary-verifier-api
 
-  government-ui:
+  primary-verifier-ui:
     extends:
       file: common-services.yml
-      service: government-ui
+      service: primary-verifier-ui
 
-  government-agent:
+  primary-verifier-agent:
     extends:
       file: common-services.yml
-      service: government-agent
+      service: primary-verifier-agent
 
-  government-proxy:
+  primary-verifier-proxy:
     extends:
       file: common-services.yml
-      service: government-proxy
+      service: primary-verifier-proxy
 
-  government-proxy-setup:
+  primary-verifier-proxy-setup:
     extends:
       file: common-services.yml
-      service: government-proxy-setup
+      service: primary-verifier-proxy-setup
 
-#***************************************************************
-# Verifier Services
-#***************************************************************
+  #***************************************************************
+  # Verifier Services
+  #***************************************************************
 
-  verifier-api:
+  secondary-verifier-api:
     extends:
       file: common-services.yml
-      service: verifier-api
+      service: secondary-verifier-api
 
-  verifier-ui:
+  secondary-verifier-ui:
     extends:
       file: common-services.yml
-      service: verifier-ui
+      service: secondary-verifier-ui
 
-  verifier-agent:
+  secondary-verifier-agent:
     extends:
       file: common-services.yml
-      service: verifier-agent
+      service: secondary-verifier-agent
 
-  verifier-proxy:
+  secondary-verifier-proxy:
     extends:
       file: common-services.yml
-      service: verifier-proxy
+      service: secondary-verifier-proxy
 
-  verifier-proxy-setup:
+  secondary-verifier-proxy-setup:
     extends:
       file: common-services.yml
-      service: verifier-proxy-setup
+      service: secondary-verifier-proxy-setup
 
-#***************************************************************
-# Test Services
-#***************************************************************
+  #***************************************************************
+  # Test Services
+  #***************************************************************
 
   test-agent:
-    image: dbluhm/acapy-toolbox:939bbe6
+    image: ghcr.io/indicio-tech/acapy-toolbox:acapy-0.7.4-0
     environment:
       ACAPY_ENDPOINT: http://test-agent:3010
     ports:
@@ -125,13 +122,13 @@ services:
     entrypoint: >
       sh -c 'aca-py "$$@"' --
     volumes:
-      - ./test-agent.yml:/home/indy/test-agent.yml 
+      - ./test-agent.yml:/home/indy/test-agent.yml
     command: >
       start --arg-file test-agent.yml
       -it acapy_plugin_toolbox.http_ws 0.0.0.0 3010
       --admin 0.0.0.0 8155 --admin-insecure-mode
       --label "Test Agent"
-      --wallet-type indy
+      --wallet-type askar
       --wallet-name test
       --wallet-key test
       --auto-provision
@@ -148,7 +145,7 @@ services:
       ${TEST_SEED}
 
   test-proxy:
-    image: dbluhm/proxy-mediator:7c54489
+    image: ghcr.io/indicio-tech/proxy-mediator:0.1.1
     volumes:
       - test-proxy-store:/app/store:z
     environment:
@@ -162,7 +159,7 @@ services:
       - app-network
 
   test-proxy-setup:
-    image: dbluhm/proxy-mediator-setup:7c54489
+    image: ghcr.io/indicio-tech/proxy-mediator-setup:0.1.1
     environment:
       - WAIT_BEFORE_HOSTS=3
       - WAIT_HOSTS=test-proxy:3000,test-agent:3010
@@ -171,7 +168,7 @@ services:
       - WAIT_HOST_CONNECT_TIMEOUT=10
       - PROXY=http://test-proxy:3000
       - AGENT=http://test-agent:8155
-      - MEDIATOR_INVITE=https://mediator4.test.indiciotech.io/?c_i=eyJAdHlwZSI6ICJkaWQ6c292OkJ6Q2JzTlloTXJqSGlxWkRUVUFTSGc7c3BlYy9jb25uZWN0aW9ucy8xLjAvaW52aXRhdGlvbiIsICJAaWQiOiAiNjdlMWIyYjctZDkwZi00YjBhLTk3OTEtNDkzNjVmNmQ4MDNjIiwgImxhYmVsIjogIkluZGljaW8gTWVkaWF0b3IiLCAicmVjaXBpZW50S2V5cyI6IFsiNlY3SHFKR3hEdTJFM2JFbndWc2F6TEJ1MTRBaXNyNndadVQzSHBnUkVlb2MiXSwgInNlcnZpY2VFbmRwb2ludCI6ICJodHRwczovL21lZGlhdG9yNC50ZXN0LmluZGljaW90ZWNoLmlvOjQ0MyJ9
+      - MEDIATOR_INVITE=https://public.mediator.indiciotech.io?c_i=eyJAdHlwZSI6ICJkaWQ6c292OkJ6Q2JzTlloTXJqSGlxWkRUVUFTSGc7c3BlYy9jb25uZWN0aW9ucy8xLjAvaW52aXRhdGlvbiIsICJAaWQiOiAiMDVlYzM5NDItYTEyOS00YWE3LWEzZDQtYTJmNDgwYzNjZThhIiwgInNlcnZpY2VFbmRwb2ludCI6ICJodHRwczovL3B1YmxpYy5tZWRpYXRvci5pbmRpY2lvdGVjaC5pbyIsICJyZWNpcGllbnRLZXlzIjogWyJDc2dIQVpxSktuWlRmc3h0MmRIR3JjN3U2M3ljeFlEZ25RdEZMeFhpeDIzYiJdLCAibGFiZWwiOiAiSW5kaWNpbyBQdWJsaWMgTWVkaWF0b3IifQ==
     depends_on:
       - test-proxy
       - test-agent

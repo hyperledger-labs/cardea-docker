@@ -1,8 +1,8 @@
 nginx
-government-api
-government-ui
-lab-api
-lab-ui
-verifier-api
-verifier-ui
+primary-verifier-api
+primary-verifier-ui
+health-issuer-api
+health-issuer-ui
+secondary-verifier-api
+secondary-verifier-ui
 postgres-db
