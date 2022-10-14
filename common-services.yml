@@ -54,6 +54,12 @@ services:
   # DB Service
   db:
     image: postgres:9.5
+    healthcheck:
+      test: "pg_isready --username=development"
+      start_period: 30s
+      interval: 30s
+      timeout: 5s
+      retries: 5
     hostname: db
     restart: unless-stopped
     #    ports: # Uncomment to access postgres outside of containers
@@ -105,7 +111,10 @@ services:
     networks:
       - app-network
     depends_on:
-      - "db"
+      db:
+        condition: service_healthy
+      health-issuer-agent:
+        condition: service_healthy
 
   health-issuer-ui:
     image: node:12-stretch
@@ -131,6 +140,12 @@ services:
   health-issuer-agent:
     build:
       context: .
+    healthcheck:
+      test: curl -s -o /dev/null -w '%{http_code}' "http://localhost:8150/status/live" | grep "200" > /dev/null
+      start_period: 30s
+      interval: 30s
+      timeout: 5s
+      retries: 5
     environment:
       ACAPY_WEBHOOK_URL: http://health-issuer-api:3100/api/controller-webhook
       ACAPY_ENDPOINT: http://health-issuer-agent:3005
@@ -175,10 +190,19 @@ services:
     networks:
       - app-network
     depends_on:
-      - "db"
+      db:
+        condition: service_healthy
 
   health-issuer-proxy:
     image: ghcr.io/indicio-tech/proxy-mediator:0.1.1
+    image: ghcr.io/indicio-tech/proxy-mediator:0.1.1
+    healthcheck:
+      test: curl -s -o /dev/null -w '%{http_code}' "http://localhost:3000/status" | grep "200" > /dev/null
+      start_period: 30s
+      interval: 30s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
     environment:
       PORT: 3000
       ENDPOINT: http://health-issuer-proxy:3000
@@ -189,7 +213,8 @@ services:
     networks:
       - app-network
     depends_on:
-      - "db"
+      db:
+        condition: service_healthy
 
   health-issuer-proxy-setup:
     image: ghcr.io/indicio-tech/proxy-mediator-setup:0.1.1
@@ -203,8 +228,12 @@ services:
       - AGENT=http://health-issuer-agent:8150
       - MEDIATOR_INVITE=https://public.mediator.indiciotech.io?c_i=eyJAdHlwZSI6ICJkaWQ6c292OkJ6Q2JzTlloTXJqSGlxWkRUVUFTSGc7c3BlYy9jb25uZWN0aW9ucy8xLjAvaW52aXRhdGlvbiIsICJAaWQiOiAiMDVlYzM5NDItYTEyOS00YWE3LWEzZDQtYTJmNDgwYzNjZThhIiwgInNlcnZpY2VFbmRwb2ludCI6ICJodHRwczovL3B1YmxpYy5tZWRpYXRvci5pbmRpY2lvdGVjaC5pbyIsICJyZWNpcGllbnRLZXlzIjogWyJDc2dIQVpxSktuWlRmc3h0MmRIR3JjN3U2M3ljeFlEZ25RdEZMeFhpeDIzYiJdLCAibGFiZWwiOiAiSW5kaWNpbyBQdWJsaWMgTWVkaWF0b3IifQ==
     depends_on:
-      - health-issuer-proxy
-      - health-issuer-agent
+      db:
+        condition: service_healthy
+      health-issuer-agent:
+        condition: service_started
+      health-issuer-proxy:
+        condition: service_started
     networks:
       - app-network
 
@@ -250,7 +279,10 @@ services:
     networks:
       - app-network
     depends_on:
-      - "db"
+      db:
+        condition: service_healthy
+      primary-verifier-agent:
+        condition: service_healthy
 
   primary-verifier-ui:
     image: node:12-stretch
@@ -276,6 +308,12 @@ services:
   primary-verifier-agent:
     build:
       context: .
+    healthcheck:
+      test: curl -s -o /dev/null -w '%{http_code}' "http://localhost:8151/status/live" | grep "200" > /dev/null
+      start_period: 30s
+      interval: 30s
+      timeout: 5s
+      retries: 5
     environment:
       ACAPY_WEBHOOK_URL: http://primary-verifier-api:3100/api/controller-webhook
       ACAPY_ENDPOINT: http://primary-verifier-agent:3006
@@ -319,9 +357,19 @@ services:
       - "8151:8151"
     networks:
       - app-network
+    depends_on:
+      db:
+        condition: service_healthy
 
   primary-verifier-proxy:
     image: ghcr.io/indicio-tech/proxy-mediator:0.1.1
+    healthcheck:
+      test: curl -s -o /dev/null -w '%{http_code}' "http://localhost:3000/status" | grep "200" > /dev/null
+      start_period: 30s
+      interval: 30s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
     environment:
       PORT: 3000
       ENDPOINT: http://primary-verifier-proxy:3000
@@ -331,6 +379,9 @@ services:
       LOG_LEVEL: WARNING
     networks:
       - app-network
+    depends_on:
+      db:
+        condition: service_healthy
 
   primary-verifier-proxy-setup:
     image: ghcr.io/indicio-tech/proxy-mediator-setup:0.1.1
@@ -348,6 +399,13 @@ services:
       - primary-verifier-agent
     networks:
       - app-network
+    depends_on:
+      db:
+        condition: service_healthy
+      primary-verifier-proxy:
+        condition: service_started
+      primary-verifier-agent:
+        condition: service_started
 
   #***************************************************************
   # Verifier Services
@@ -384,7 +442,10 @@ services:
     networks:
       - app-network
     depends_on:
-      - "db"
+      db:
+        condition: service_healthy
+      secondary-verifier-agent:
+        condition: service_healthy
 
   secondary-verifier-ui:
     image: node:12-stretch
@@ -410,6 +471,12 @@ services:
   secondary-verifier-agent:
     build:
       context: .
+    healthcheck:
+      test: curl -s -o /dev/null -w '%{http_code}' "http://localhost:8154/status/live" | grep "200" > /dev/null
+      start_period: 30s
+      interval: 30s
+      timeout: 5s
+      retries: 5
     environment:
       ACAPY_WEBHOOK_URL: http://secondary-verifier-api:3100/api/controller-webhook
       ACAPY_ENDPOINT: http://secondary-verifier-agent:3009
@@ -452,9 +519,19 @@ services:
       - 8154:8154
     networks:
       - app-network
+    depends_on:
+      db:
+        condition: service_healthy
 
   secondary-verifier-proxy:
     image: ghcr.io/indicio-tech/proxy-mediator:0.1.1
+    healthcheck:
+      test: curl -s -o /dev/null -w '%{http_code}' "http://localhost:3000/status" | grep "200" > /dev/null
+      start_period: 30s
+      interval: 30s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
     environment:
       PORT: 3000
       ENDPOINT: http://secondary-verifier-proxy:3000
@@ -464,6 +541,9 @@ services:
       LOG_LEVEL: WARNING
     networks:
       - app-network
+    depends_on:
+      db:
+        condition: service_healthy
 
   secondary-verifier-proxy-setup:
     image: ghcr.io/indicio-tech/proxy-mediator-setup:0.1.1
@@ -481,6 +561,13 @@ services:
       - secondary-verifier-agent
     networks:
       - app-network
+    depends_on:
+      db:
+        condition: service_healthy
+      secondary-verifier-proxy:
+        condition: service_started
+      secondary-verifier-agent:
+        condition: service_started
 
 #Docker Networks
 networks:
