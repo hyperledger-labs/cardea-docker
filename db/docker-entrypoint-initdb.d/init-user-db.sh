@@ -32,5 +32,10 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     CREATE DATABASE verproxy OWNER verproxy;
     GRANT ALL PRIVILEGES ON DATABASE verproxy TO verproxy;
 
+    CREATE USER testagent WITH PASSWORD 'testagent';
+    CREATE USER testproxy WITH PASSWORD 'testproxy';
+    CREATE DATABASE testproxy OWNER testproxy;
+    GRANT ALL PRIVILEGES ON DATABASE testproxy TO testproxy;
+
 
 EOSQL

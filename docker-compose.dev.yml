@@ -12,6 +12,19 @@ services:
       - "4443:4443"
       - "8080:8080"
       - "4444:4444"
+    depends_on:
+      health-issuer-api:
+        condition: service_started
+      health-issuer-ui:
+        condition: service_started
+      primary-verifier-api:
+        condition: service_started
+      primary-verifier-ui:
+        condition: service_started
+      secondary-verifier-api:
+        condition: service_started
+      secondary-verifier-ui:
+        condition: service_started
 
   # DB Service
   db:
@@ -111,7 +124,14 @@ services:
   #***************************************************************
 
   test-agent:
-    image: ghcr.io/indicio-tech/acapy-toolbox:acapy-0.7.4-0
+    image: ghcr.io/indicio-tech/acapy-toolbox:939bbe6_ssl
+    healthcheck:
+      test: curl -s -o /dev/null -w '%{http_code}' "http://localhost:8155/status/live" | grep "200" > /dev/null
+      start_period: 30s
+      interval: 60s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
     environment:
       ACAPY_ENDPOINT: http://test-agent:3010
     ports:
@@ -120,17 +140,20 @@ services:
     networks:
       - app-network
     entrypoint: >
-      sh -c 'aca-py "$$@"' --
+      sh -c '/home/indy/wait-for-it/wait-for-it.sh -t 300 db:5432 && aca-py "$$@"' --
     volumes:
-      - ./test-agent.yml:/home/indy/test-agent.yml
+      - ./wait-for-it:/home/indy/wait-for-it
     command: >
-      start --arg-file test-agent.yml
+      start --arg-file default.yml
       -it acapy_plugin_toolbox.http_ws 0.0.0.0 3010
       --admin 0.0.0.0 8155 --admin-insecure-mode
       --label "Test Agent"
-      --wallet-type askar
-      --wallet-name test
+      --wallet-type indy
+      --wallet-name testagent
       --wallet-key test
+      --wallet-storage-type postgres_storage
+      --wallet-storage-config '{"url":"db:5432"}'
+      --wallet-storage-creds '{"account":"testagent","password":"testagent","admin_account":"development","admin_password":"development"}'
       --auto-provision
       --auto-accept-requests
       --auto-ping-connection
@@ -143,20 +166,25 @@ services:
       --auto-verify-presentation
       --genesis-url ${GENESIS_URL} 
       ${TEST_SEED}
+    depends_on:
+      db:
+        condition: service_healthy
 
   test-proxy:
     image: ghcr.io/indicio-tech/proxy-mediator:0.1.1
-    volumes:
-      - test-proxy-store:/app/store:z
+    restart: unless-stopped
     environment:
       PORT: 3000
       ENDPOINT: http://test-proxy:3000
       ENABLE_STORE: "true"
-      REPO_URI: "sqlite:///app/store/db"
+      REPO_URI: "postgres://testproxy:testproxy@db:5432/testproxy"
       REPO_KEY: insecure
       LOG_LEVEL: WARNING
     networks:
       - app-network
+    depends_on:
+      db:
+        condition: service_healthy
 
   test-proxy-setup:
     image: ghcr.io/indicio-tech/proxy-mediator-setup:0.1.1
@@ -170,8 +198,12 @@ services:
       - AGENT=http://test-agent:8155
       - MEDIATOR_INVITE=https://public.mediator.indiciotech.io?c_i=eyJAdHlwZSI6ICJkaWQ6c292OkJ6Q2JzTlloTXJqSGlxWkRUVUFTSGc7c3BlYy9jb25uZWN0aW9ucy8xLjAvaW52aXRhdGlvbiIsICJAaWQiOiAiMDVlYzM5NDItYTEyOS00YWE3LWEzZDQtYTJmNDgwYzNjZThhIiwgInNlcnZpY2VFbmRwb2ludCI6ICJodHRwczovL3B1YmxpYy5tZWRpYXRvci5pbmRpY2lvdGVjaC5pbyIsICJyZWNpcGllbnRLZXlzIjogWyJDc2dIQVpxSktuWlRmc3h0MmRIR3JjN3U2M3ljeFlEZ25RdEZMeFhpeDIzYiJdLCAibGFiZWwiOiAiSW5kaWNpbyBQdWJsaWMgTWVkaWF0b3IifQ==
     depends_on:
-      - test-proxy
-      - test-agent
+      db:
+        condition: service_healthy
+      test-agent:
+        condition: service_started
+      test-proxy:
+        condition: service_started
     networks:
       - app-network
 

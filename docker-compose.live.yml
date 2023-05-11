@@ -11,11 +11,24 @@ services:
     environment:
       DEV_COMMENT: "" # Enable prod settings
       PROD_COMMENT: "#" # Disable dev settings
-  #    volumes: # Remove government service from webserver
-  #      - type: tmpfs
-  #        target: /etc/nginx/templates/
-  #      - ./nginx/conf.d/lab.conf.template:/etc/nginx/templates/lab.conf.template
-  #      - ./nginx/conf.d/verifier.conf.template:/etc/nginx/templates/verifier.conf.template
+    #    volumes: # Remove government service from webserver
+    #      - type: tmpfs
+    #        target: /etc/nginx/templates/
+    #      - ./nginx/conf.d/lab.conf.template:/etc/nginx/templates/lab.conf.template
+    #      - ./nginx/conf.d/verifier.conf.template:/etc/nginx/templates/verifier.conf.template
+    depends_on:
+      issuer-issuer-api:
+        condition: service_started
+      issuer-issuer-ui:
+        condition: service_started
+      primary-verifier-api:
+        condition: service_started
+      primary-verifier-ui:
+        condition: service_started
+      secondary-verifier-api:
+        condition: service_started
+      secondary-verifier-ui:
+        condition: service_started
 
   # DB Service
   db:
